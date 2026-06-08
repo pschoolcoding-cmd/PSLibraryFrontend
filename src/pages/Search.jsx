@@ -118,12 +118,22 @@ const Search = () => {
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
                         {filteredBooks.map((book) => (
                             <div key={book.bid} className='bg-gray-900 rounded-lg overflow-hidden hover:shadow-lg hover:shadow-blue-500/50 transition-shadow duration-300'>
-                                {/* Book Cover Placeholder */}
-                                <div className='bg-linear-to-br from-blue-600 to-purple-600 h-48 flex items-center justify-center'>
-                                    <div className='text-center text-white'>
-                                        <div className='text-4xl mb-2'>📚</div>
-                                        <div className='text-sm font-semibold px-4'>{book.name}</div>
-                                    </div>
+                                {/* Book Cover */}
+                                <div className='h-48 w-full overflow-hidden'>
+                                    {book.image ? (
+                                        <img 
+                                            src={book.image} 
+                                            alt={book.name} 
+                                            className='w-full h-full object-cover transition-transform duration-500 hover:scale-110' 
+                                        />
+                                    ) : (
+                                        <div className='bg-linear-to-br from-blue-600 to-purple-600 h-full flex items-center justify-center'>
+                                            <div className='text-center text-white'>
+                                                <div className='text-4xl mb-2'>📚</div>
+                                                <div className='text-sm font-semibold px-4'>{book.name}</div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Book Info */}
