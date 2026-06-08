@@ -71,8 +71,51 @@ const AddBook = () => {
             reader.readAsDataURL(file);
         }
     };
-    const newbook = () => {
-        setLoading(true)
+
+    const uploadToImgBB = async (base64Image) => {
+        const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
+        if (!apiKey) {
+            console.error('ImgBB API key is missing. Please add VITE_IMGBB_API_KEY to your .env file.');
+            return null;
+        }
+
+        // ImgBB expects the base64 string without the data:image/png;base64, prefix
+        const base64Data = base64Image.split(',')[1];
+        
+        const formData = new FormData();
+        formData.append('image', base64Data);
+
+        try {
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+                method: 'POST',
+                body: formData,
+            });
+            const result = await response.json();
+            if (result.success) {
+                return result.data.url;
+            } else {
+                console.error('ImgBB Upload Error:', result.error);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error uploading to ImgBB:', error);
+            return null;
+        }
+    };
+
+    const newbook = async () => {
+        setLoading(true);
+        
+        let imageUrl = '';
+        if (image) {
+            imageUrl = await uploadToImgBB(image);
+            if (!imageUrl) {
+                setLoading(false);
+                alert('Failed to upload image to ImgBB. Please check your API key.');
+                return;
+            }
+        }
+
         // Handle adding a new book
         fetch('https://pslibrarybackend.onrender.com/books', {
             method: 'POST',
@@ -86,7 +129,7 @@ const AddBook = () => {
                 genre: genre,
                 author: author,
                 description: description,
-                image: image,
+                image: imageUrl, // Store the ImgBB URL instead of base64
             }),
         })
             .then((response) => response.json())
