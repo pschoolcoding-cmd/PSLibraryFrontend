@@ -5,6 +5,7 @@ const AddBook = () => {
     const [bookIdp1, setBookIdp1] = useState('');
     const [bookIdp2, setBookIdp2] = useState('');
     const [title, setTitle] = useState('');
+    const [loading, setLoading] = useState(false);
     const [author, setAuthor] = useState('');
     const [description, setDescription] = useState('');
     const [genre, setGenre] = useState({});
@@ -58,8 +59,9 @@ const AddBook = () => {
         setTagInput('');
     }
     const newbook = () => {
+        setLoading(true)
         // Handle adding a new book
-        fetch('http://localhost:3000/books', {
+        fetch('https://pslibrarybackend.onrender.com/books', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -76,10 +78,12 @@ const AddBook = () => {
             .then((response) => response.json())
             .then((data) => {
                 console.log('Success:', data);
+                setLoading(false);
                 clean()
             })
             .catch((error) => {
                 console.error('Error:', error);
+                setLoading(false);
             });
     }
   return (
@@ -118,7 +122,7 @@ const AddBook = () => {
                     ))}
                 </div>
                 <textarea placeholder="Description" className='p-2 rounded outline-1' value={description} onChange={(e) => setDescription(e.target.value)} />
-                <button type="submit" className='bg-blue-500 text-white p-2 rounded' onClick={newbook}>Add Book</button>
+                <button type="submit" className={`bg-blue-500 text-white p-2 rounded hover:bg-blue-600 active:text-black duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`} onClick={newbook}>Add Book</button>
             </div>
         </div>
     </div>

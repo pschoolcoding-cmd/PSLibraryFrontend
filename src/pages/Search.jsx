@@ -10,7 +10,7 @@ const Search = () => {
 
     const fetchBooks = async () => {
         try {
-            const response = await fetch('http://localhost:3000/books', {
+            const response = await fetch('https://pslibrarybackend.onrender.com/books', {
                 headers: {
                     'x-api-key': import.meta.env.VITE_API_KEY
                 }
@@ -43,7 +43,7 @@ const Search = () => {
         const interval = setInterval(() => {
             fetchBooks();
             console.log("fetch")
-        }, 1000);
+        }, 3000);
         
         return () => clearInterval(interval);
     }, []);
