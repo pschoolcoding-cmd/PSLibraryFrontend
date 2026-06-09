@@ -92,6 +92,7 @@ const AddBook = () => {
             });
             const result = await response.json();
             if (result.success) {
+                setImage(result.data.url);
                 return result.data.url;
             } else {
                 console.error('ImgBB Upload Error:', result.error);
@@ -115,7 +116,14 @@ const AddBook = () => {
                 return;
             }
         }
-
+        console.log({
+                name: title,
+                bid: bookIdp1+"-"+bookIdp2,
+                genre: genre,
+                author: author,
+                description: description,
+                image: imageUrl, // Store the ImgBB URL instead of base64
+            })
         // Handle adding a new book
         fetch('https://pslibrarybackend.onrender.com/books', {
             method: 'POST',
