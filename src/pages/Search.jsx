@@ -99,7 +99,7 @@ const Search = () => {
                 </div>
             )}
             
-            <div className='max-w-7xl mx-auto'>
+            <div className='max-w-full mx-auto'>
                 <h1 className='text-4xl font-bold mb-8'>{searchTerm ? 'Search Results' : 'Recommended Books'}</h1>
                 
                 {/* Search and Filter Section */}
