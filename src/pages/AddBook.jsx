@@ -102,9 +102,8 @@ const AddBook = () => {
         }
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
+    const processFile = (file) => {
+        if (file && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImage(reader.result);
@@ -114,6 +113,40 @@ const AddBook = () => {
             reader.readAsDataURL(file);
         }
     };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        processFile(file);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const file = e.dataTransfer.files[0];
+        processFile(file);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    React.useEffect(() => {
+        const handlePaste = (e) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].kind === 'file' && items[i].type.startsWith('image/')) {
+                    const file = items[i].getAsFile();
+                    processFile(file);
+                    break;
+                }
+            }
+        };
+
+        window.addEventListener('paste', handlePaste);
+        return () => window.removeEventListener('paste', handlePaste);
+    }, []);
 
     const newbook = async () => {
         setLoading(true);
@@ -170,7 +203,11 @@ const AddBook = () => {
             <div className='flex flex-row gap-2 items-center text-black '>
                 <div className='flex flex-col space-y-3'>
                     <label className='text-sm font-semibold text-gray-700 uppercase tracking-wider'>Book Cover Image</label>
-                    <div className='relative border-2 border-dashed border-gray-400 rounded-lg p-4 hover:border-blue-500 transition-colors duration-300 bg-gray-50 flex flex-col items-center justify-center space-y-2 cursor-pointer group'>
+                    <div 
+                        onDragOver={handleDragOver} 
+                        onDrop={handleDrop} 
+                        className='relative border-2 border-dashed border-gray-400 rounded-lg p-4 hover:border-blue-500 transition-colors duration-300 bg-gray-50 flex flex-col items-center justify-center space-y-2 cursor-pointer group'
+                    >
                         <input 
                             type="file" 
                             accept="image/*" 
@@ -178,7 +215,7 @@ const AddBook = () => {
                             className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10'
                         />
                         <div className='text-4xl text-gray-400 group-hover:text-blue-500 transition-colors duration-300'>📷</div>
-                        <p className='text-gray-500 group-hover:text-gray-700 font-medium'>Click or drag image to upload</p>
+                        <p className='text-gray-500 group-hover:text-gray-700 font-medium'>Click, drag, or paste an image to upload</p>
                         <p className='text-xs text-gray-400'>Supports: JPG, PNG, WEBP</p>
                     </div>
                     {image && (

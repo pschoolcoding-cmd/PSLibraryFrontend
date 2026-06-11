@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Search = () => {
+    const navigate = useNavigate();
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -16,12 +18,19 @@ const Search = () => {
 
     const fetchGenres = async () => {
         try {
+            const cachedGenres = sessionStorage.getItem('library_genres');
+            if (cachedGenres) {
+                setAllGenres(JSON.parse(cachedGenres));
+                return;
+            }
+
             const response = await fetch(`${API_BASE_URL}/books/genres`, {
                 headers: { 'x-api-key': import.meta.env.VITE_API_KEY || '' }
             });
             if (response.ok) {
                 const data = await response.json();
                 setAllGenres(data);
+                sessionStorage.setItem('library_genres', JSON.stringify(data));
             }
         } catch (err) {
             console.error('Failed to fetch genres:', err);
@@ -99,7 +108,7 @@ const Search = () => {
                 </div>
             )}
             
-            <div className='max-w-full mx-auto'>
+            <div className='max-w-[90%] mx-auto'>
                 <h1 className='text-4xl font-bold mb-8'>{searchTerm ? 'Search Results' : 'Recommended Books'}</h1>
                 
                 {/* Search and Filter Section */}
@@ -205,7 +214,10 @@ const Search = () => {
 
                                         {/* Actions */}
                                         <div className='mt-auto pt-2'>
-                                            <button className='w-full bg-[#d9d9d9] hover:bg-white text-black py-2 rounded-xl text-sm font-semibold transition-colors'>
+                                            <button 
+                                                onClick={() => navigate(`/book/${book._id}`)}
+                                                className='w-full bg-[#d9d9d9] hover:bg-white text-black py-2 rounded-xl text-sm font-semibold transition-colors'
+                                            >
                                                 View details
                                             </button>
                                         </div>
