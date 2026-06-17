@@ -147,8 +147,8 @@ const Viewbook = () => {
                                                 </div>
                                             </div>
                                             <div className='text-right'>
-                                                <p className='text-gray-400 text-xs uppercase tracking-wider mb-1'>Taken Date</p>
-                                                <p className='font-medium text-gray-200'>{copy.whentoken || 'N/A'}</p>
+                                                <p className='text-gray-400 text-xs uppercase tracking-wider mb-1'>Last updated</p>
+                                                <p className='font-medium text-gray-200'>{copy.whentaken || 'N/A'}</p>
                                             </div>
                                         </div>
                                     ))}
