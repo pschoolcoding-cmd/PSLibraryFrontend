@@ -58,7 +58,27 @@ const Search = () => {
             const result = await response.json();
             // Expected backend format: { data: [...], total: X, page: Y, pages: Z }
             if (result && result.data) {
-                setBooks(result.data);
+                // Group books by the first 13 characters of bid (ISBN)
+                const grouped = [];
+                const isbnMap = new Map();
+
+                result.data.forEach(book => {
+                    const isbn = book.bid ? book.bid.substring(0, 13) : null;
+                    if (isbn && isbn.length >= 13) {
+                        if (!isbnMap.has(isbn)) {
+                            const newGroup = { ...book, copyCount: 1 };
+                            isbnMap.set(isbn, newGroup);
+                            grouped.push(newGroup);
+                        } else {
+                            isbnMap.get(isbn).copyCount += 1;
+                        }
+                    } else {
+                        // Fallback: If no valid ISBN, don't group or group by full bid
+                        grouped.push({ ...book, copyCount: 1 });
+                    }
+                });
+
+                setBooks(grouped);
                 setTotalPages(result.pages);
                 setTotalBooks(result.total);
             } else {
@@ -109,7 +129,15 @@ const Search = () => {
             )}
             
             <div className='max-w-[90%] mx-auto'>
-                <h1 className='text-4xl font-bold mb-8'>{searchTerm ? 'Search Results' : 'Recommended Books'}</h1>
+                <div className='flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4'>
+                    <h1 className='text-4xl font-bold'>{searchTerm ? 'Search Results' : 'Recommended Books'}</h1>
+                    <button 
+                        onClick={() => navigate('/scan')}
+                        className='bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all transform hover:scale-105 shadow-lg shadow-blue-600/20'
+                    >
+                        <span>📷</span> Scan or Pattern Search
+                    </button>
+                </div>
                 
                 {/* Search and Filter Section */}
                 <div className='bg-gray-900 p-6 rounded-lg mb-8'>
@@ -185,6 +213,14 @@ const Search = () => {
                                             <p className='text-gray-300 text-xs font-light tracking-wide'>Author:</p>
                                             <p className='text-white text-lg font-medium line-clamp-1'>{book.author || 'Someone'}</p>
                                         </div>
+
+                                        {book.copyCount > 1 && (
+                                            <div className='mt-1'>
+                                                <span className='bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full'>
+                                                    {book.copyCount} Copies
+                                                </span>
+                                            </div>
+                                        )}
 
                                         {/* Genres */}
                                         <div className='mt-2'>

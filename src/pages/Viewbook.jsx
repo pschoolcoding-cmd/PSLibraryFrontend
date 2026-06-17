@@ -7,6 +7,8 @@ const Viewbook = () => {
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [copies, setCopies] = useState([]);
+    const [loadingCopies, setLoadingCopies] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pslibrarybackend.onrender.com';
 
@@ -23,6 +25,21 @@ const Viewbook = () => {
                 const data = await response.json();
                 setBook(data);
                 setError(null);
+
+                // Fetch copies sharing the same ISBN (first 13 chars of bid)
+                const isbn = data.bid?.substring(0, 13);
+                if (isbn && isbn.length >= 13) {
+                    setLoadingCopies(true);
+                    const copiesResponse = await fetch(`${API_BASE_URL}/books?bid=${isbn}`, {
+                        headers: { 'x-api-key': import.meta.env.VITE_API_KEY || 'supersecret' }
+                    });
+                    if (copiesResponse.ok) {
+                        const copiesResult = await copiesResponse.json();
+                        // Backend returns { data, total, ... }
+                        setCopies(copiesResult.data || []);
+                    }
+                    setLoadingCopies(false);
+                }
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -109,18 +126,36 @@ const Viewbook = () => {
                             </p>
                         </div>
 
-                        {/* Status section */}
-                        <div className='mt-8 grid grid-cols-2 gap-4 border-t border-gray-800 pt-6'>
-                            <div className='bg-gray-800/50 p-4 rounded-xl'>
-                                <p className='text-gray-400 text-sm mb-1'>Borrowed Status</p>
-                                <p className={`font-medium ${book.borrowed === '1' ? 'text-red-400' : 'text-green-400'}`}>
-                                    {book.borrowed === '1' ? 'Currently Borrowed' : 'Available in Library'}
-                                </p>
-                            </div>
-                            <div className='bg-gray-800/50 p-4 rounded-xl'>
-                                <p className='text-gray-400 text-sm mb-1'>Date Added</p>
-                                <p className='font-medium text-gray-200'>{book.whentoken || 'Unknown'}</p>
-                            </div>
+                        {/* Copies & Status section */}
+                        <div className='mt-8 border-t border-gray-800 pt-6'>
+                            <h3 className='text-xl font-bold mb-4'>Available Copies & Locations</h3>
+                            {loadingCopies ? (
+                                <div className='text-gray-400 animate-pulse'>Loading copies...</div>
+                            ) : copies.length > 0 ? (
+                                <div className='grid grid-cols-1 gap-3'>
+                                    {copies.sort((a, b) => a.bid.localeCompare(b.bid)).map((copy) => (
+                                        <div key={copy._id} className='bg-gray-800/50 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 border border-gray-700/50'>
+                                            <div className='flex items-center gap-4'>
+                                                <div className='bg-blue-600/30 text-blue-400 px-3 py-1 rounded-lg font-mono text-sm border border-blue-600/20'>
+                                                    #{copy.bid.split('-')[1] || '1'}
+                                                </div>
+                                                <div>
+                                                    <p className='text-gray-400 text-xs uppercase tracking-wider mb-1'>Location</p>
+                                                    <p className={`font-semibold ${copy.borrowed === '0' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                        {copy.borrowed === '0' ? '🏢 In Library' : `📍 ${copy.borrowed}`}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className='text-right'>
+                                                <p className='text-gray-400 text-xs uppercase tracking-wider mb-1'>Taken Date</p>
+                                                <p className='font-medium text-gray-200'>{copy.whentoken || 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className='text-gray-500 italic'>No specific copy records found.</div>
+                            )}
                         </div>
                     </div>
                 </div>

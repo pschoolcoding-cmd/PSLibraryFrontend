@@ -12,6 +12,7 @@ const AddBook = () => {
     const [image, setImage] = useState('');
     const [imageStatus, setImageStatus] = useState(''); // 'uploading', 'done', ''
     const [uploadedImageUrl, setUploadedImageUrl] = useState(''); // stores ImgBB URL
+    const [location, setLocation] = useState('0'); // Maps to 'borrowed' field
 
     // Genre tags input UI and logic
     const [tagInput, setTagInput] = useState('');
@@ -63,6 +64,7 @@ const AddBook = () => {
         setImage('');
         setUploadedImageUrl('');
         setImageStatus('');
+        setLocation('0');
     }
 
     const uploadToImgBB = async (base64Image) => {
@@ -183,6 +185,7 @@ const AddBook = () => {
                 author: author,
                 description: description,
                 image: imageUrl,
+                borrowed: location || '0',
             }),
         })
             .then((response) => response.json())
@@ -259,6 +262,7 @@ const AddBook = () => {
                     <input type="text" placeholder="xxxx" className='p-2 rounded outline-none' value={bookIdp2} onChange={(e) => setBookIdp2(e.target.value)} />
                     </div>
                     <input type="text" placeholder="Author" className='p-2 rounded outline-1' value={author} onChange={(e) => setAuthor(e.target.value)} />
+                    <input type="text" placeholder="Location (0 for Library)" className='p-2 rounded outline-1 text-blue-800 font-bold' value={location} onChange={(e) => setLocation(e.target.value)} />
                     <label className='text-sm mb-1 block text-black'>Genres</label>
                     <div className='flex flex-wrap items-center gap-2 mb-2'>
                         <input
