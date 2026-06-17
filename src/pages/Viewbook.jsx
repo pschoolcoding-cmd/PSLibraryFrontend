@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Loader from '../components/Loader';
 
 const Viewbook = () => {
     const { id } = useParams();
@@ -52,7 +53,7 @@ const Viewbook = () => {
     if (loading) {
         return (
             <div className='min-h-screen w-full bg-black text-white p-8 flex items-center justify-center'>
-                <div className='text-xl animate-pulse'>Loading book details...</div>
+                <Loader text="Opening the book..." />
             </div>
         );
     }
@@ -130,7 +131,9 @@ const Viewbook = () => {
                         <div className='mt-8 border-t border-gray-800 pt-6'>
                             <h3 className='text-xl font-bold mb-4'>Available Copies & Locations</h3>
                             {loadingCopies ? (
-                                <div className='text-gray-400 animate-pulse'>Loading copies...</div>
+                                <div className='flex justify-center p-8'>
+                                    <Loader text="Tracking copies..." />
+                                </div>
                             ) : copies.length > 0 ? (
                                 <div className='grid grid-cols-1 gap-3'>
                                     {copies.sort((a, b) => a.bid.localeCompare(b.bid)).map((copy) => (

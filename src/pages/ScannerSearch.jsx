@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
+import Loader from '../components/Loader';
 
 const ScannerSearch = () => {
     const navigate = useNavigate();
@@ -215,7 +216,11 @@ const ScannerSearch = () => {
                     </div>
                 )}
 
-                {books.length > 0 ? (
+                {loading ? (
+                    <div className="flex justify-center py-20">
+                        <Loader text="Finding matching books..." />
+                    </div>
+                ) : books.length > 0 ? (
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                         {books.map((book) => (
                             <div key={book.bid || book._id} className='flex flex-row bg-[#030712] rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 h-64 border border-gray-800 group'>

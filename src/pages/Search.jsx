@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Loader from '../components/Loader';
 
 const Search = () => {
     const navigate = useNavigate();
@@ -175,9 +176,9 @@ const Search = () => {
                 </div>
 
                 {/* Books Grid */}
-                {loading && books.length === 0 ? (
-                    <div className='flex items-center justify-center py-20'>
-                        <div className='text-white text-xl'>Loading books...</div>
+                {loading ? (
+                    <div className='flex justify-center py-20'>
+                        <Loader text="Fetching the best books for you..." />
                     </div>
                 ) : books.length > 0 ? (
                     <>
