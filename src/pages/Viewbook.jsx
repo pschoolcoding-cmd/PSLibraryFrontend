@@ -31,7 +31,7 @@ const Viewbook = () => {
                 const name = data.name;
                 if (isbn && isbn.length >= 13) {
                     setLoadingCopies(true);
-                    const copiesResponse = await fetch(`${API_BASE_URL}/books?bid=${isbn}&name=${encodeURIComponent(name)}`, {
+                    const copiesResponse = await fetch(`${API_BASE_URL}/books?bid=${isbn}&name=${encodeURIComponent(name)}&all=true`, {
                         headers: { 'x-api-key': import.meta.env.VITE_API_KEY || 'supersecret' }
                     });
                     if (copiesResponse.ok) {
