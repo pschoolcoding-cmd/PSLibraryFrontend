@@ -131,13 +131,16 @@ const ScannerSearch = () => {
                 const isbnMap = new Map();
                 result.data.forEach(book => {
                     const isbn = book.bid ? book.bid.substring(0, 13) : null;
-                    if (isbn && isbn.length >= 13) {
-                        if (!isbnMap.has(isbn)) {
+                    const name = book.name || '';
+                    const groupKey = isbn && isbn.length >= 13 ? `${isbn}-${name}` : null;
+
+                    if (groupKey) {
+                        if (!isbnMap.has(groupKey)) {
                             const newGroup = { ...book, copyCount: 1 };
-                            isbnMap.set(isbn, newGroup);
+                            isbnMap.set(groupKey, newGroup);
                             grouped.push(newGroup);
                         } else {
-                            isbnMap.get(isbn).copyCount += 1;
+                            isbnMap.get(groupKey).copyCount += 1;
                         }
                     } else {
                         grouped.push({ ...book, copyCount: 1 });
@@ -250,7 +253,7 @@ const ScannerSearch = () => {
                                 <div className='w-[65%] p-4 flex flex-col'>
                                     <h3 className='text-white text-lg font-bold line-clamp-2 leading-tight mb-2'>{book.name}</h3>
                                     <p className='text-gray-400 text-sm mb-1'>Author: <span className='text-gray-200'>{book.author}</span></p>
-                                    <p className='text-gray-500 text-xs font-mono mb-4'>{book.bid}</p>
+                                    <p className='text-gray-500 text-xs font-mono mb-4'>{(book.bid).split("-")[0]}</p>
                                     
                                     <button 
                                         onClick={() => navigate(`/book/${book._id}`)}

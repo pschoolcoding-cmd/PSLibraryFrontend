@@ -64,13 +64,17 @@ const Search = () => {
 
                 result.data.forEach(book => {
                     const isbn = book.bid ? book.bid.substring(0, 13) : null;
-                    if (isbn && isbn.length >= 13) {
-                        if (!isbnMap.has(isbn)) {
+                    const name = book.name || '';
+                    // Use combination of ISBN and Name for grouping to avoid merging different titles
+                    const groupKey = isbn && isbn.length >= 13 ? `${isbn}-${name}` : null;
+
+                    if (groupKey) {
+                        if (!isbnMap.has(groupKey)) {
                             const newGroup = { ...book, copyCount: 1 };
-                            isbnMap.set(isbn, newGroup);
+                            isbnMap.set(groupKey, newGroup);
                             grouped.push(newGroup);
                         } else {
-                            isbnMap.get(isbn).copyCount += 1;
+                            isbnMap.get(groupKey).copyCount += 1;
                         }
                     } else {
                         // Fallback: If no valid ISBN, don't group or group by full bid

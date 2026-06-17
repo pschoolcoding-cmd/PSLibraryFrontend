@@ -26,16 +26,16 @@ const Viewbook = () => {
                 setBook(data);
                 setError(null);
 
-                // Fetch copies sharing the same ISBN (first 13 chars of bid)
+                // Fetch copies sharing the same ISBN (first 13 chars of bid) and the same name
                 const isbn = data.bid?.substring(0, 13);
+                const name = data.name;
                 if (isbn && isbn.length >= 13) {
                     setLoadingCopies(true);
-                    const copiesResponse = await fetch(`${API_BASE_URL}/books?bid=${isbn}`, {
+                    const copiesResponse = await fetch(`${API_BASE_URL}/books?bid=${isbn}&name=${encodeURIComponent(name)}`, {
                         headers: { 'x-api-key': import.meta.env.VITE_API_KEY || 'supersecret' }
                     });
                     if (copiesResponse.ok) {
                         const copiesResult = await copiesResponse.json();
-                        // Backend returns { data, total, ... }
                         setCopies(copiesResult.data || []);
                     }
                     setLoadingCopies(false);
@@ -99,8 +99,8 @@ const Viewbook = () => {
                         <div className='mt-4 flex flex-col gap-2'>
                             <p className='text-xl text-gray-300'>by <span className='text-white font-medium'>{book.author || 'Unknown Author'}</span></p>
                             <div className='flex items-center gap-2'>
-                                <span className='text-gray-400'>Book ID:</span>
-                                <span className='font-mono bg-gray-800 px-3 py-1 rounded text-sm text-gray-200'>{book.bid}</span>
+                                <span className='text-gray-400'>Book ISBN:</span>
+                                <span className='font-mono bg-gray-800 px-3 py-1 rounded text-sm text-gray-200'>{(book.bid).split("-")[0]}</span>
                             </div>
                         </div>
 
