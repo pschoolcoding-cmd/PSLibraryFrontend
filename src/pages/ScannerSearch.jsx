@@ -126,27 +126,8 @@ const ScannerSearch = () => {
             const result = await response.json();
             
             if (result && result.data) {
-                // Grouping logic (reused from Search.jsx)
-                const grouped = [];
-                const isbnMap = new Map();
-                result.data.forEach(book => {
-                    const isbn = book.bid ? book.bid.substring(0, 13) : null;
-                    const name = book.name || '';
-                    const groupKey = isbn && isbn.length >= 13 ? `${isbn}-${name}` : null;
-
-                    if (groupKey) {
-                        if (!isbnMap.has(groupKey)) {
-                            const newGroup = { ...book, copyCount: 1 };
-                            isbnMap.set(groupKey, newGroup);
-                            grouped.push(newGroup);
-                        } else {
-                            isbnMap.get(groupKey).copyCount += 1;
-                        }
-                    } else {
-                        grouped.push({ ...book, copyCount: 1 });
-                    }
-                });
-                setBooks(grouped);
+                // Backend now handles grouping and provides copyCount
+                setBooks(result.data);
             }
         } catch (err) {
             setError(err.message);

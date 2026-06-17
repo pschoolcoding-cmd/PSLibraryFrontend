@@ -13,6 +13,7 @@ const Search = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalBooks, setTotalBooks] = useState(0);
+    const [sortBy, setSortBy] = useState('recent'); // 'recent' or 'name'
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -42,7 +43,8 @@ const Search = () => {
             setLoading(true);
             const queryParams = new URLSearchParams({
                 page: page,
-                limit: 24
+                limit: 24,
+                sortBy: sortBy
             });
             if (searchTerm) queryParams.append('q', searchTerm);
             if (filterGenre) queryParams.append('genre', filterGenre);
@@ -57,32 +59,9 @@ const Search = () => {
             
             const result = await response.json();
             // Expected backend format: { data: [...], total: X, page: Y, pages: Z }
+            // Backend now handles grouping and pagination via aggregation
             if (result && result.data) {
-                // Group books by the first 13 characters of bid (ISBN)
-                const grouped = [];
-                const isbnMap = new Map();
-
-                result.data.forEach(book => {
-                    const isbn = book.bid ? book.bid.substring(0, 13) : null;
-                    const name = book.name || '';
-                    // Use combination of ISBN and Name for grouping to avoid merging different titles
-                    const groupKey = isbn && isbn.length >= 13 ? `${isbn}-${name}` : null;
-
-                    if (groupKey) {
-                        if (!isbnMap.has(groupKey)) {
-                            const newGroup = { ...book, copyCount: 1 };
-                            isbnMap.set(groupKey, newGroup);
-                            grouped.push(newGroup);
-                        } else {
-                            isbnMap.get(groupKey).copyCount += 1;
-                        }
-                    } else {
-                        // Fallback: If no valid ISBN, don't group or group by full bid
-                        grouped.push({ ...book, copyCount: 1 });
-                    }
-                });
-
-                setBooks(grouped);
+                setBooks(result.data);
                 setTotalPages(result.pages);
                 setTotalBooks(result.total);
             } else {
@@ -106,7 +85,7 @@ const Search = () => {
 
     useEffect(() => {
         fetchBooks();
-    }, [page, searchTerm, filterGenre]);
+    }, [page, searchTerm, filterGenre, sortBy]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -173,12 +152,26 @@ const Search = () => {
                                 ))}
                             </select>
                         </div>
+                        <div>
+                            <label className='block text-sm font-medium mb-2'>Sort By</label>
+                            <select
+                                value={sortBy}
+                                onChange={(e) => {
+                                    setSortBy(e.target.value);
+                                    setPage(1);
+                                }}
+                                className='w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:border-blue-500 outline-hidden'
+                            >
+                                <option value='recent'>Recently Added</option>
+                                <option value='name'>Book Name (A-Z)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 {/* Books Count */}
                 <div className='mb-6 text-gray-400'>
-                    Showing {books.length} items {totalBooks > 0 ? `out of ${totalBooks}` : ''}
+                    Showing {books.length} unique titles {totalBooks > 0 ? `out of ${totalBooks}` : ''}
                 </div>
 
                 {/* Books Grid */}
