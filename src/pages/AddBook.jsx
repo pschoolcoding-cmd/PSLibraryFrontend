@@ -1,5 +1,5 @@
-import React from 'react'
-import { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const AddBook = () => {
     const [bookIdp1, setBookIdp1] = useState('');
@@ -13,6 +13,8 @@ const AddBook = () => {
     const [imageStatus, setImageStatus] = useState(''); // 'uploading', 'done', ''
     const [uploadedImageUrl, setUploadedImageUrl] = useState(''); // stores ImgBB URL
     const [location, setLocation] = useState('0'); // Maps to 'borrowed' field
+    const [isScanning, setIsScanning] = useState(false);
+    const scannerRef = useRef(null);
 
     // Genre tags input UI and logic
     const [tagInput, setTagInput] = useState('');
@@ -29,8 +31,48 @@ const AddBook = () => {
         if (!form) return;
         const handler = (e) => e.preventDefault();
         form.addEventListener('submit', handler);
-        return () => form.removeEventListener('submit', handler);
+        return () => {
+            form.removeEventListener('submit', handler);
+            if (scannerRef.current) {
+                scannerRef.current.stop().catch(console.error);
+            }
+        };
     }, []);
+
+    const startScanner = async () => {
+        setIsScanning(true);
+        try {
+            const scanner = new Html5Qrcode("isbn-reader");
+            scannerRef.current = scanner;
+            await scanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    const isbn = decodedText.replace(/[^0-9]/g, '');
+                    if (isbn.length === 13 || isbn.length === 10) {
+                        setBookIdp1(isbn);
+                        stopScanner();
+                    }
+                },
+                () => {}
+            );
+        } catch (err) {
+            console.error(err);
+            setIsScanning(false);
+        }
+    };
+
+    const stopScanner = async () => {
+        if (scannerRef.current) {
+            try {
+                await scannerRef.current.stop();
+                setIsScanning(false);
+            } catch (err) {
+                console.error(err);
+                setIsScanning(false);
+            }
+        }
+    };
 
     const addTag = (value) => {
         const parts = value.split(',').map(s => s.trim()).filter(Boolean);
@@ -257,9 +299,20 @@ const AddBook = () => {
                 </div>
                 <div className='flex flex-col space-y-3 p-3'>
                     <input type="text" placeholder="Title" className='p-2 rounded outline-1' value={title} onChange={(e) => setTitle(e.target.value)} />
-                    <div className='outline-1'>
-                    <input type="text" placeholder="xxxxxxxxxxxxx" className='p-2 rounded outline-none' value={bookIdp1} onChange={(e) => setBookIdp1(e.target.value)} />-
-                    <input type="text" placeholder="xxxx" className='p-2 rounded outline-none' value={bookIdp2} onChange={(e) => setBookIdp2(e.target.value)} />
+                    <div className='flex flex-col gap-2'>
+                        <div id="isbn-reader" className={`w-full aspect-video bg-black rounded-lg overflow-hidden ${isScanning ? 'block' : 'hidden'}`}></div>
+                        <button 
+                            type="button"
+                            onClick={isScanning ? stopScanner : startScanner}
+                            className={`py-2 rounded-lg font-bold text-white transition-all ${isScanning ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                        >
+                            {isScanning ? 'Stop Scanning' : '📷 Scan ISBN'}
+                        </button>
+                        <div className='flex items-center gap-1 outline-1 bg-white p-1 rounded'>
+                            <input type="text" placeholder="xxxxxxxxxxxxx" className='p-2 rounded outline-none w-full' value={bookIdp1} onChange={(e) => setBookIdp1(e.target.value)} />
+                            <span className='font-bold text-gray-500'>-</span>
+                            <input type="text" placeholder="xxxx" className='p-2 rounded outline-none w-20' value={bookIdp2} onChange={(e) => setBookIdp2(e.target.value)} />
+                        </div>
                     </div>
                     <input type="text" placeholder="Author" className='p-2 rounded outline-1' value={author} onChange={(e) => setAuthor(e.target.value)} />
                     <input type="text" placeholder="Location (0 for Library)" className='p-2 rounded outline-1 text-blue-800 font-bold' value={location} onChange={(e) => setLocation(e.target.value)} />

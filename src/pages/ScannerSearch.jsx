@@ -63,14 +63,17 @@ const ScannerSearch = () => {
     };
 
     const handleScanSuccess = (text) => {
-        // Barcode might have extra chars, take first 13
-        const isbn = text.replace(/[^0-9]/g, '').substring(0, 13);
-        if (isbn.length === 13) {
-            const newSlots = isbn.split('');
+        // Barcode might have extra chars, take all digits
+        const digits = text.replace(/[^0-9]/g, '');
+        if (digits.length === 13 || digits.length === 10) {
+            const newSlots = Array(13).fill('');
+            digits.split('').forEach((char, i) => {
+                if (i < 13) newSlots[i] = char;
+            });
             setSlots(newSlots);
             performSearch(newSlots);
         } else {
-            setError(`Invalid Barcode: ${text}. Expected 13 digits.`);
+            setError(`Invalid Barcode: ${text}. Expected 10 or 13 digits.`);
         }
     };
 
@@ -104,8 +107,11 @@ const ScannerSearch = () => {
             // Build regex: empty slots are dots
             let pattern = currentSlots.map(s => s === '' ? '.' : s).join('');
             
-            // If all are dots, don't search or handle as empty
-            if (pattern === '.............') {
+            // Remove trailing dots to allow matching shorter IDs or prefixes
+            pattern = pattern.replace(/\.*$/, '');
+
+            // If all were dots (now empty), don't search or handle as empty
+            if (pattern === '') {
                 setBooks([]);
                 setLoading(false);
                 return;
