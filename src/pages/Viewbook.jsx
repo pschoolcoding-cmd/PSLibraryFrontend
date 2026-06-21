@@ -70,95 +70,118 @@ const Viewbook = () => {
     }
 
     return (
-        <div className='min-h-screen w-full bg-black text-white p-4 md:p-8 overflow-y-auto'>
-            <div className='max-w-5xl mx-auto'>
-                <button onClick={() => navigate(-1)} className='mb-6 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors'>
-                    <span>&larr;</span> Back
+        <div className='min-h-screen w-full bg-[#030712] text-white p-4 md:p-12 overflow-y-auto selection:bg-blue-500/30 font-[Inter]'>
+            <div className='max-w-6xl mx-auto'>
+                <button 
+                    onClick={() => navigate(-1)} 
+                    className='mb-10 group bg-gray-900/50 hover:bg-white text-gray-400 hover:text-black px-6 py-3 rounded-2xl flex items-center gap-3 transition-all border border-gray-800/50 backdrop-blur-md'
+                >
+                    <span className='transition-transform group-hover:-translate-x-1'>&larr;</span> 
+                    <span className='text-xs font-black uppercase tracking-widest'>Back</span>
                 </button>
 
-                <div className='flex flex-col md:flex-row gap-8 bg-gray-900 p-6 md:p-10 rounded-3xl'>
+                <div className='flex flex-col lg:flex-row gap-12'>
                     {/* Book Cover */}
-                    <div className='w-full md:w-1/3 shrink-0'>
-                        <div className='w-full aspect-[2/3] bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border border-gray-700'>
-                            {book.image ? (
-                                <img src={book.image} alt={book.name} className='w-full h-full object-cover' />
-                            ) : (
-                                <div className='bg-gradient-to-br from-blue-900 to-[#0a1030] h-full flex flex-col items-center justify-center text-center p-4'>
-                                    <div className='text-6xl mb-4'>📚</div>
-                                    <div className='text-lg font-semibold'>{book.name}</div>
-                                </div>
-                            )}
+                    <div className='w-full lg:w-[35%] shrink-0'>
+                        <div className='sticky top-12'>
+                            <div className='w-full aspect-[2/3] bg-gray-900 rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)] border border-gray-800 relative group'>
+                                {book.image ? (
+                                    <img src={book.image} alt={book.name} className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-105' />
+                                ) : (
+                                    <div className='bg-gradient-to-br from-blue-900/20 to-black h-full flex flex-col items-center justify-center text-center p-8'>
+                                        <div className='text-8xl mb-6 grayscale opacity-20'>📚</div>
+                                        <div className='text-xl font-black uppercase italic tracking-tighter text-blue-400'>{book.name}</div>
+                                    </div>
+                                )}
+                                <div className='absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60'></div>
+                            </div>
                         </div>
                     </div>
 
                     {/* Book Details */}
-                    <div className='w-full md:w-2/3 flex flex-col'>
-                        <div className='flex justify-between items-start gap-4'>
-                            <h1 className='text-4xl md:text-5xl font-bold leading-tight'>{book.name}</h1>
-                        </div>
-                        
-                        <div className='mt-4 flex flex-col gap-2'>
-                            <p className='text-xl text-gray-300'>by <span className='text-white font-medium'>{book.author || 'Unknown Author'}</span></p>
-                            <div className='flex items-center gap-2'>
-                                <span className='text-gray-400'>Book ISBN:</span>
-                                <span className='font-mono bg-gray-800 px-3 py-1 rounded text-sm text-gray-200'>{(book.bid).split("-")[0]}</span>
+                    <div className='w-full lg:w-[65%] flex flex-col'>
+                        <div className='space-y-6'>
+                            <div className='space-y-2'>
+                                <p className='text-blue-500 text-xs font-black uppercase tracking-[0.4em] font-[Outfit]'>Book Profile</p>
+                                <h1 className='text-5xl md:text-7xl font-black leading-[0.95] tracking-tighter uppercase italic font-[Outfit]'>{book.name}</h1>
                             </div>
-                        </div>
+                            
+                            <div className='flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8'>
+                                <div>
+                                    <p className='text-gray-500 text-[10px] font-black uppercase tracking-widest mb-1'>Author</p>
+                                    <p className='text-2xl font-bold text-gray-200'>{(book.author || 'Anonymous').toUpperCase()}</p>
+                                </div>
+                                <div className='h-10 w-px bg-gray-800 hidden sm:block'></div>
+                                <div>
+                                    <p className='text-gray-500 text-[10px] font-black uppercase tracking-widest mb-1'>Identifier (ISBN)</p>
+                                    <p className='text-xl font-mono text-blue-400 font-bold'>{(book.bid).split("-")[0]}</p>
+                                </div>
+                            </div>
 
-                        <div className='mt-6'>
-                            <h3 className='text-lg font-semibold text-gray-300 mb-2'>Genres</h3>
-                            <div className='flex flex-wrap gap-2'>
-                                {Array.isArray(book.genre) && book.genre.length > 0 ? (
-                                    book.genre.map((g, idx) => (
-                                        <span key={idx} className='bg-blue-600/20 text-blue-400 border border-blue-600/30 px-4 py-1 rounded-full text-sm font-medium'>
-                                            {g}
-                                        </span>
-                                    ))
+                            <div className='pt-6'>
+                                <p className='text-gray-500 text-[10px] font-black uppercase tracking-widest mb-3 italic'>Classified Under</p>
+                                <div className='flex flex-wrap gap-2'>
+                                    {Array.isArray(book.genre) && book.genre.length > 0 ? (
+                                        book.genre.map((g, idx) => (
+                                            <span key={idx} className='bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-default'>
+                                                {g}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className='text-gray-600 text-xs italic'>Global Classification</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className='pt-10'>
+                                <h3 className='text-xs font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-3'>
+                                    <span>Summary</span>
+                                    <div className='h-px flex-1 bg-gray-800/50'></div>
+                                </h3>
+                                <p className='text-gray-400 leading-relaxed text-lg font-medium selection:bg-blue-500/50'>
+                                    {book.description || 'This work remains one of the library\'s most intriguing pieces, offering a window into the author\'s unique perspective and creative depth.'}
+                                </p>
+                            </div>
+
+                            {/* Copies & Status section */}
+                            <div className='mt-12 pt-10 border-t border-gray-800/50'>
+                                <div className='flex items-center justify-between mb-8'>
+                                    <h3 className='text-2xl font-black uppercase italic font-[Outfit] tracking-tighter'>Inventory Status</h3>
+                                    <div className='bg-blue-600 text-[10px] font-black px-3 py-1 rounded-full'>ACTIVE</div>
+                                </div>
+                                
+                                {loadingCopies ? (
+                                    <div className='flex flex-col items-center justify-center p-12 bg-gray-900/30 rounded-[2rem] border border-gray-800/30'>
+                                        <Loader text="Auditing records..." />
+                                    </div>
+                                ) : copies.length > 0 ? (
+                                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                        {copies.sort((a, b) => a.bid.localeCompare(b.bid)).map((copy) => (
+                                            <div key={copy._id} className='group bg-gray-900/40 p-5 rounded-2xl flex items-center justify-between border border-gray-800/50 hover:bg-gray-800/50 hover:border-blue-500/30 transition-all'>
+                                                <div className='flex items-center gap-5'>
+                                                    <div className='w-12 h-12 bg-black rounded-xl flex items-center justify-center border border-gray-800 group-hover:border-blue-500/40 transition-colors'>
+                                                        <span className='text-blue-500 font-bold text-xs'>#{copy.bid.split('-')[1] || '1'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className='text-[8px] font-black text-gray-600 uppercase tracking-widest mb-0.5'>Location</p>
+                                                        <p className={`font-black uppercase text-sm tracking-tight ${copy.borrowed === '0' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                                            {copy.borrowed === '0' ? 'In Catalog' : copy.borrowed}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className='text-right'>
+                                                    <p className='text-[8px] font-black text-gray-600 uppercase tracking-widest mb-0.5'>Sync</p>
+                                                    <p className='font-mono text-[10px] text-gray-500'>{copy.whentaken?.split(' ')[0] || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 ) : (
-                                    <span className='bg-gray-800 text-gray-400 px-4 py-1 rounded-full text-sm'>No genres specified</span>
+                                    <div className='p-10 text-center bg-gray-900/30 rounded-[2rem] border border-gray-800/30'>
+                                        <p className='text-gray-600 font-bold uppercase tracking-widest text-xs'>Universal distribution record</p>
+                                    </div>
                                 )}
                             </div>
-                        </div>
-
-                        <div className='mt-8 flex-1'>
-                            <h3 className='text-xl font-bold mb-3 border-b border-gray-700 pb-2'>Description</h3>
-                            <p className='text-gray-300 leading-relaxed whitespace-pre-wrap text-lg'>
-                                {book.description || 'No description available for this book.'}
-                            </p>
-                        </div>
-
-                        {/* Copies & Status section */}
-                        <div className='mt-8 border-t border-gray-800 pt-6'>
-                            <h3 className='text-xl font-bold mb-4'>Available Copies & Locations</h3>
-                            {loadingCopies ? (
-                                <div className='flex justify-center p-8'>
-                                    <Loader text="Tracking copies..." />
-                                </div>
-                            ) : copies.length > 0 ? (
-                                <div className='grid grid-cols-1 gap-3'>
-                                    {copies.sort((a, b) => a.bid.localeCompare(b.bid)).map((copy) => (
-                                        <div key={copy._id} className='bg-gray-800/50 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 border border-gray-700/50'>
-                                            <div className='flex items-center gap-4'>
-                                                <div className='bg-blue-600/30 text-blue-400 px-3 py-1 rounded-lg font-mono text-sm border border-blue-600/20'>
-                                                    #{copy.bid.split('-')[1] || '1'}
-                                                </div>
-                                                <div>
-                                                    <p className='text-gray-400 text-xs uppercase tracking-wider mb-1'>Location</p>
-                                                    <p className={`font-semibold ${copy.borrowed === '0' ? 'text-green-400' : 'text-yellow-400'}`}>
-                                                        {copy.borrowed === '0' ? '🏢 In Library' : `📍 ${copy.borrowed}`}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className='text-right'>
-                                                <p className='text-gray-400 text-xs uppercase tracking-wider mb-1'>Last updated</p>
-                                                <p className='font-medium text-gray-200'>{copy.whentaken || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className='text-gray-500 italic'>No specific copy records found.</div>
-                            )}
                         </div>
                     </div>
                 </div>

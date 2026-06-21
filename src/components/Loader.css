@@ -7,13 +7,14 @@
 }
 
 .book {
-    --color: #fff;
+    --color: #3b82f6; /* Use primary color */
     --duration: 6.8s;
     width: 32px;
     height: 12px;
     position: relative;
-    margin: 32px 0 0 0;
-    zoom: 1.5;
+    margin: 48px auto; /* Center with margin */
+    transform: scale(2); /* Use scale instead of zoom */
+    transform-origin: center;
 }
 
 .book .inner {

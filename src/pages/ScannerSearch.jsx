@@ -148,35 +148,35 @@ const ScannerSearch = () => {
                 </div>
 
                 {/* Scanner Section */}
-                <div className='bg-gray-900 md:bg-gray-900/50 backdrop-blur-md p-6 rounded-3xl border border-gray-800 mb-8 overflow-hidden relative'>
-                    <div className='flex flex-col items-center gap-4'>
-                        <div id="reader" className={`w-full max-w-[400px] aspect-video bg-black rounded-xl border-2 border-dashed border-gray-700 overflow-hidden ${isScanning ? 'block' : 'hidden'}`}></div>
+                <div className='bg-gray-900/40 backdrop-blur-xl p-8 rounded-[2rem] border border-gray-800/50 mb-8 overflow-hidden relative shadow-2xl'>
+                    <div className='flex flex-col items-center gap-6'>
+                        <div id="reader" className={`w-full max-w-[450px] aspect-video bg-black rounded-2xl border-2 border-dashed border-gray-700 overflow-hidden shadow-inner ${isScanning ? 'block shadow-blue-500/10 border-blue-500/50' : 'hidden'}`}></div>
                         
                         {!isScanning ? (
                             <button 
                                 onClick={startScanner}
-                                className='bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 transition-all transform hover:scale-105 shadow-lg shadow-blue-600/20'
+                                className='bg-blue-600 hover:bg-blue-500 text-white px-10 py-5 rounded-2xl font-black flex items-center gap-4 transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl shadow-blue-600/20 uppercase tracking-widest text-sm font-[Outfit]'
                             >
-                                <span className='text-2xl'>📷</span> Start Barcode Scanner
+                                <span className='text-3xl'>📷</span> Open Barcode Scanner
                             </button>
                         ) : (
                             <button 
                                 onClick={stopScanner}
-                                className='bg-red-600 hover:bg-red-500 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 transition-all transform hover:scale-105 shadow-lg shadow-red-600/20'
+                                className='bg-red-600 hover:bg-red-500 text-white px-10 py-5 rounded-2xl font-black flex items-center gap-4 transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl shadow-red-600/20 uppercase tracking-widest text-sm font-[Outfit]'
                             >
-                                ⏹ Stop Scanner
+                                <span className='text-3xl'>⏹</span> Stop Scanner
                             </button>
                         )}
-                        <p className='text-gray-500 text-sm'>Point your camera at the book's barcode (ISBN-13)</p>
+                        <p className='text-gray-500 text-xs font-bold uppercase tracking-widest'>Align barcode within the frame</p>
                     </div>
                 </div>
 
                 {/* Manual Pattern Section */}
-                <div className='bg-gray-900 border border-gray-800 p-8 rounded-3xl mb-8 shadow-2xl'>
-                    <h3 className='text-xl font-semibold mb-6 text-center text-gray-300'>Enter Specific Characters (ISBN-13 Pattern)</h3>
-                    <div className='flex flex-wrap justify-center gap-2 md:gap-3 mb-8'>
+                <div className='bg-gray-900/60 border border-gray-800 p-8 rounded-[2.5rem] mb-12 shadow-2xl'>
+                    <h3 className='text-xs font-black uppercase tracking-[0.3em] mb-10 text-center text-blue-500 font-[Outfit]'>ISBN-13 Pattern Search</h3>
+                    <div className='grid grid-cols-5 sm:grid-cols-7 md:flex md:flex-wrap justify-center gap-2 md:gap-4 mb-10'>
                         {slots.map((slot, idx) => (
-                            <div key={idx} className='flex flex-col items-center gap-1'>
+                            <div key={idx} className='flex flex-col items-center gap-2'>
                                 <input
                                     id={`slot-${idx}`}
                                     type="text"
@@ -184,27 +184,27 @@ const ScannerSearch = () => {
                                     value={slot}
                                     onChange={(e) => handleSlotChange(idx, e.target.value)}
                                     onKeyDown={(e) => handleKeyDown(idx, e)}
-                                    className={`w-10 h-14 md:w-12 md:h-16 text-center text-2xl font-bold rounded-xl border-2 transition-all outline-hidden
-                                        ${slot ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 focus:border-blue-500'}`}
-                                    placeholder="."
+                                    className={`w-full aspect-square md:w-12 md:h-16 text-center text-2xl font-black rounded-xl border-2 transition-all outline-hidden
+                                        ${slot ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/30' : 'bg-black/40 border-gray-800 text-gray-500 focus:border-blue-500/50 focus:bg-blue-500/5'}`}
+                                    placeholder="•"
                                 />
-                                <span className='text-[10px] text-gray-600 font-mono'>{idx + 1}</span>
+                                <span className='text-[9px] text-gray-600 font-black font-mono'>{idx + 1}</span>
                             </div>
                         ))}
                     </div>
-                    <div className='flex justify-center gap-4'>
+                    <div className='flex flex-col sm:flex-row justify-center gap-4'>
                         <button 
                             onClick={() => performSearch(slots)}
                             disabled={loading || slots.every(s => s === '')}
-                            className='bg-white text-black px-10 py-3 rounded-xl font-bold hover:bg-gray-200 disabled:opacity-50 transition-all active:scale-95'
+                            className='bg-white text-black px-12 py-4 rounded-2xl font-black hover:bg-gray-200 disabled:opacity-50 transition-all active:scale-95 uppercase tracking-widest text-xs shadow-xl'
                         >
-                            {loading ? 'Searching...' : 'Search Pattern'}
+                            {loading ? 'Searching...' : 'Execute Search'}
                         </button>
                         <button 
                             onClick={() => setSlots(Array(13).fill(''))}
-                            className='bg-gray-800 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transition-all'
+                            className='bg-gray-800/50 text-white px-8 py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all border border-gray-700/50 text-xs uppercase tracking-widest'
                         >
-                            Clear
+                            Reset
                         </button>
                     </div>
                 </div>

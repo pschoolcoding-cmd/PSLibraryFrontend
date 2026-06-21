@@ -112,40 +112,48 @@ const Search = () => {
                 </div>
             )}
             
-            <div className='max-w-[90%] mx-auto'>
-                <div className='flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4'>
-                    <h1 className='text-4xl font-bold'>{searchTerm ? 'Search Results' : 'Recommended Books'}</h1>
+            <div className='max-w-[1200px] mx-auto'>
+                <div className='flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6'>
+                    <div>
+                        <h1 className='text-4xl md:text-5xl font-black bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent italic tracking-tighter mb-2 uppercase font-[Outfit]'>
+                            {searchTerm ? 'Search Results' : 'Recommended'}
+                        </h1>
+                        <p className='text-gray-500 font-medium'>Discover your next favorite read</p>
+                    </div>
                     <button 
                         onClick={() => navigate('/scan')}
-                        className='bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all transform hover:scale-105 shadow-lg shadow-blue-600/20'
+                        className='bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-xl shadow-blue-600/30'
                     >
-                        <span>📷</span> Scan or Pattern Search
+                        <span className='text-xl'>📷</span> Smart ID Search
                     </button>
                 </div>
                 
                 {/* Search and Filter Section */}
-                <div className='bg-gray-900 p-6 rounded-lg mb-8'>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                        <div>
-                            <label className='block text-sm font-medium mb-2'>Search by Title or Author (Press Enter)</label>
-                            <input
-                                type='text'
-                                placeholder='Type and press Enter...'
-                                value={inputTerm}
-                                onChange={(e) => setInputTerm(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                className='w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:border-blue-500 outline-hidden'
-                            />
+                <div className='bg-gray-900/40 backdrop-blur-xl p-6 rounded-3xl mb-12 border border-gray-800/50 shadow-2xl'>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                        <div className='space-y-2'>
+                            <label className='block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1'>Quick Search</label>
+                            <div className='relative'>
+                                <input
+                                    type='text'
+                                    placeholder='Search by title or author...'
+                                    value={inputTerm}
+                                    onChange={(e) => setInputTerm(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    className='w-full p-4 pl-12 rounded-2xl bg-black/50 text-white border border-gray-800 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 outline-hidden transition-all'
+                                />
+                                <span className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xl'>🔍</span>
+                            </div>
                         </div>
-                        <div>
-                            <label className='block text-sm font-medium mb-2'>Filter by Genre</label>
+                        <div className='space-y-2'>
+                            <label className='block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1'>Category</label>
                             <select
                                 value={filterGenre}
                                 onChange={(e) => {
                                     setFilterGenre(e.target.value);
-                                    setPage(1); // Reset page on filter
+                                    setPage(1);
                                 }}
-                                className='w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:border-blue-500 outline-hidden'
+                                className='w-full p-4 rounded-2xl bg-black/50 text-white border border-gray-800 focus:border-blue-500/50 outline-hidden transition-all appearance-none cursor-pointer'
                             >
                                 <option value=''>All Genres</option>
                                 {allGenres.map(genre => (
@@ -153,106 +161,89 @@ const Search = () => {
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className='block text-sm font-medium mb-2'>Sort By</label>
+                        <div className='space-y-2'>
+                            <label className='block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1'>Sort Order</label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => {
                                     setSortBy(e.target.value);
                                     setPage(1);
                                 }}
-                                className='w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:border-blue-500 outline-hidden'
+                                className='w-full p-4 rounded-2xl bg-black/50 text-white border border-gray-800 focus:border-blue-500/50 outline-hidden transition-all appearance-none cursor-pointer'
                             >
                                 <option value='recent'>Recently Added</option>
-                                <option value='name'>Book Name (A-Z)</option>
+                                <option value='name'>Name (A-Z)</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                {/* Books Count */}
-                <div className='mb-6 text-gray-400'>
-                    Showing {books.length} unique titles {totalBooks > 0 ? `out of ${totalBooks}` : ''}
-                </div>
-
                 {/* Books Grid */}
                 {loading ? (
-                    <div className='flex justify-center py-20'>
-                        <Loader text="Fetching the best books for you..." />
+                    <div className='flex flex-col items-center justify-center py-32'>
+                        <Loader text="Curating the library's best..." />
                     </div>
                 ) : books.length > 0 ? (
                     <>
-                        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8'>
                             {books.map((book) => (
-                                <div key={book.bid || book._id} className='flex flex-row bg-[#0a1024] rounded-3xl overflow-hidden hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 h-72 border border-gray-800'>
+                                <div 
+                                    key={book.bid || book._id} 
+                                    className='group flex flex-col sm:flex-row bg-[#0f172a] rounded-[2rem] overflow-hidden hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 border border-gray-800/50 hover:border-blue-500/30'
+                                    style={{ height: 'auto', minHeight: '18rem' }}
+                                >
                                     {/* Book Cover */}
-                                    <div className='w-[40%] h-full shrink-0 bg-gray-800'>
+                                    <div className='w-full sm:w-[45%] h-64 sm:h-auto shrink-0 relative overflow-hidden'>
                                         {book.image ? (
                                             <img 
                                                 src={book.image} 
                                                 alt={book.name} 
-                                                className='w-full h-full object-cover' 
+                                                className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110' 
                                             />
                                         ) : (
-                                            <div className='bg-gradient-to-br from-blue-900 to-[#0a1030] h-full flex items-center justify-center'>
-                                                <div className='text-center text-white px-2'>
-                                                    <div className='text-3xl mb-2'>📚</div>
-                                                    <div className='text-xs font-semibold'>{book.name}</div>
-                                                </div>
+                                            <div className='bg-gradient-to-br from-gray-800 to-gray-900 h-full flex flex-col items-center justify-center p-4'>
+                                                <span className='text-5xl mb-3'>📖</span>
+                                                <span className='text-[10px] text-gray-500 font-bold uppercase text-center'>{book.name}</span>
                                             </div>
                                         )}
+                                        <div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4'>
+                                            <span className='text-white text-xs font-bold px-3 py-1 bg-blue-600 rounded-full'>Featured</span>
+                                        </div>
                                     </div>
 
                                     {/* Book Info */}
-                                    <div className='w-[60%] p-4 flex flex-col h-full'>
-                                        <h3 className='text-white text-xl font-bold line-clamp-2 leading-tight'>{book.name}</h3>
-                                        
-                                        <div className='mt-2'>
-                                            <p className='text-gray-300 text-xs font-light tracking-wide'>Author:</p>
-                                            <p className='text-white text-lg font-medium line-clamp-1'>{book.author || 'Someone'}</p>
-                                        </div>
-
-                                        {book.copyCount > 1 && (
-                                            <div className='mt-1'>
-                                                <span className='bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full'>
-                                                    {book.copyCount} Copies
-                                                </span>
+                                    <div className='w-full sm:w-[55%] p-6 flex flex-col'>
+                                        <div className='mb-auto'>
+                                            <h3 className='text-white text-xl font-black line-clamp-2 leading-tight mb-2 group-hover:text-blue-400 transition-colors uppercase italic font-[Outfit]'>{book.name}</h3>
+                                            
+                                            <div className='mb-3'>
+                                                <p className='text-gray-500 text-[10px] font-bold uppercase tracking-widest'>Author</p>
+                                                <p className='text-gray-300 text-base font-semibold line-clamp-1'>{book.author || 'Anonymous'}</p>
                                             </div>
-                                        )}
 
-                                        {/* Genres */}
-                                        <div className='mt-2'>
-                                            <p className='text-gray-300 text-xs font-light tracking-wide mb-1'>Genres:</p>
-                                            <div className='flex flex-wrap gap-1'>
-                                                {Array.isArray(book.genre) && book.genre.length > 0 ? (
-                                                    book.genre.slice(0, 3).map((g, idx) => (
-                                                        <span key={idx} className='bg-gray-200 text-[#0a1030] text-[10px] font-bold px-2 py-0.5 rounded-full'>
-                                                            {g}
-                                                        </span>
-                                                    ))
-                                                ) : (
-                                                    <span className='bg-gray-200 text-[#0a1030] text-[10px] font-bold px-2 py-0.5 rounded-full'>
-                                                        Unknown
+                                            <div className='flex flex-wrap gap-1.5 mb-4'>
+                                                {book.copyCount > 1 && (
+                                                    <span className='bg-blue-500/10 text-blue-400 text-[10px] font-black px-2.5 py-1 rounded-lg border border-blue-500/20'>
+                                                        {book.copyCount} COPIES
                                                     </span>
                                                 )}
+                                                {Array.isArray(book.genre) && book.genre.slice(0, 2).map((g, idx) => (
+                                                    <span key={idx} className='bg-gray-800 text-gray-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-gray-700 capitalize'>
+                                                        {g}
+                                                    </span>
+                                                ))}
                                             </div>
                                         </div>
 
-                                        {/* Description */}
-                                        <div className='mt-3 flex-1 flex flex-col min-h-0'>
-                                            <p className='text-gray-400 text-xs line-clamp-3 leading-snug'>
-                                                {book.description || 'No description available for this book.'}
+                                        <div className='mt-4 space-y-4'>
+                                            <p className='text-gray-400 text-xs line-clamp-2 leading-relaxed'>
+                                                {book.description || 'Dive into this fascinating read and explore new worlds through literature.'}
                                             </p>
-                                            <div className='border-b border-gray-600 border-dotted mt-2 mb-2 w-1/2'></div>
-                                        </div>
-
-                                        {/* Actions */}
-                                        <div className='mt-auto pt-2'>
                                             <button 
                                                 onClick={() => navigate(`/book/${book._id}`)}
-                                                className='w-full bg-[#d9d9d9] hover:bg-white text-black py-2 rounded-xl text-sm font-semibold transition-colors'
+                                                className='w-full bg-white hover:bg-blue-50 text-black py-3 rounded-2xl text-xs font-black transition-all active:scale-95 uppercase tracking-widest'
                                             >
-                                                View details
+                                                Details
                                             </button>
                                         </div>
                                     </div>
