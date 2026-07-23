@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Loader from '../components/Loader';
+import Navbar from '../components/Navbar';
 
 const Search = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const initialQuery = searchParams.get('q') || '';
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [inputTerm, setInputTerm] = useState('');
-    const [searchTerm, setSearchTerm] = useState('');
+    const [inputTerm, setInputTerm] = useState(initialQuery);
+    const [searchTerm, setSearchTerm] = useState(initialQuery);
     const [filterGenre, setFilterGenre] = useState('');
     const [allGenres, setAllGenres] = useState([]);
     const [page, setPage] = useState(1);
@@ -59,14 +62,11 @@ const Search = () => {
             if (!response.ok) throw new Error('Failed to fetch books');
             
             const result = await response.json();
-            // Expected backend format: { data: [...], total: X, page: Y, pages: Z }
-            // Backend now handles grouping and pagination via aggregation
             if (result && result.data) {
                 setBooks(result.data);
                 setTotalPages(result.pages);
                 setTotalBooks(result.total);
             } else {
-                // Fallback if backend does not return pagination yet
                 setBooks(result);
                 setTotalPages(1);
                 setTotalBooks(result.length || 0);
@@ -91,7 +91,7 @@ const Search = () => {
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             setSearchTerm(inputTerm);
-            setPage(1); // Reset to first page on new search
+            setPage(1);
         }
     };
 
@@ -104,7 +104,8 @@ const Search = () => {
     };
 
     return (
-        <div className='min-h-screen w-full bg-black text-white p-4 md:p-8'>
+        <div className='min-h-screen w-full bg-black text-white pt-24 pb-12 px-4 md:px-8'>
+            <Navbar />
             {error && (
                 <div className='fixed top-4 right-4 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 z-[50] animate-pulse'>
                     <span>⚠️</span>

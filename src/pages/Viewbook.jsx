@@ -1,17 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Loader from '../components/Loader';
+import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
+import { BookOpen, Heart, BookmarkPlus, Check, ArrowLeft, ShieldCheck, Sparkles } from 'lucide-react';
 
 const Viewbook = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { reader, isAuthenticated, borrowBook, toggleFavorite } = useAuth();
+
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [copies, setCopies] = useState([]);
     const [loadingCopies, setLoadingCopies] = useState(false);
+    const [borrowing, setBorrowing] = useState(false);
+    const [borrowedSuccess, setBorrowedSuccess] = useState(false);
 
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pslibrarybackend.onrender.com';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+    const isFav = reader?.favoriteBooks?.includes(book?.bid || id);
+    const isAlreadyBorrowed = reader?.borrowedBooks?.some(
+      b => (b.bookId === id || b.bookId === book?.bid) && b.status === 'active'
+    );
 
     useEffect(() => {
         const fetchBook = async () => {
@@ -27,7 +39,6 @@ const Viewbook = () => {
                 setBook(data);
                 setError(null);
 
-                // Fetch copies sharing the same ISBN (first 13 chars of bid) and the same name
                 const isbn = data.bid?.substring(0, 13);
                 const name = data.name;
                 if (isbn && isbn.length >= 13) {
@@ -50,6 +61,41 @@ const Viewbook = () => {
         fetchBook();
     }, [id]);
 
+    const handleBorrow = async () => {
+      if (!isAuthenticated) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        setBorrowing(true);
+        await borrowBook({
+          bookId: book?.bid || id,
+          bookName: book?.name || 'Unknown Title',
+          author: book?.author || 'Unknown Author',
+          image: book?.image || ''
+        });
+        setBorrowedSuccess(true);
+      } catch (err) {
+        alert(err.message || 'Failed to borrow book');
+      } finally {
+        setBorrowing(false);
+      }
+    };
+
+    const handleToggleFav = async () => {
+      if (!isAuthenticated) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        await toggleFavorite(book?.bid || id);
+      } catch (err) {
+        alert(err.message || 'Failed to update favorite');
+      }
+    };
+
     if (loading) {
         return (
             <div className='min-h-screen w-full bg-black text-white p-8 flex items-center justify-center'>
@@ -61,8 +107,8 @@ const Viewbook = () => {
     if (error || !book) {
         return (
             <div className='min-h-screen w-full bg-black text-white p-8 flex flex-col items-center justify-center gap-4'>
-                <div className='text-red-500 text-xl'>Error: {error || 'Book not found'}</div>
-                <button onClick={() => navigate('/')} className='bg-gray-800 hover:bg-gray-700 px-6 py-2 rounded-lg transition-colors'>
+                <div className='text-rose-500 text-xl font-bold'>Error: {error || 'Book not found'}</div>
+                <button onClick={() => navigate('/search')} className='bg-gray-800 hover:bg-gray-700 px-6 py-2 rounded-xl transition-colors'>
                     Back to Search
                 </button>
             </div>
@@ -70,20 +116,22 @@ const Viewbook = () => {
     }
 
     return (
-        <div className='min-h-screen w-full bg-[#030712] text-white p-4 md:p-12 overflow-y-auto selection:bg-blue-500/30 font-[Inter]'>
+        <div className='min-h-screen w-full bg-[#030712] text-white pt-24 pb-12 px-4 md:px-12 overflow-y-auto selection:bg-blue-500/30 font-[Inter] relative'>
+            <Navbar />
+
             <div className='max-w-6xl mx-auto'>
                 <button 
                     onClick={() => navigate(-1)} 
-                    className='mb-10 group bg-gray-900/50 hover:bg-white text-gray-400 hover:text-black px-6 py-3 rounded-2xl flex items-center gap-3 transition-all border border-gray-800/50 backdrop-blur-md'
+                    className='mb-8 group bg-gray-900/50 hover:bg-white text-gray-400 hover:text-black px-5 py-2.5 rounded-2xl flex items-center gap-2.5 transition-all border border-gray-800/50 backdrop-blur-md cursor-pointer'
                 >
-                    <span className='transition-transform group-hover:-translate-x-1'>&larr;</span> 
+                    <ArrowLeft className='w-4 h-4 transition-transform group-hover:-translate-x-1' /> 
                     <span className='text-xs font-black uppercase tracking-widest'>Back</span>
                 </button>
 
                 <div className='flex flex-col lg:flex-row gap-12'>
-                    {/* Book Cover */}
+                    {/* Book Cover & Action Buttons */}
                     <div className='w-full lg:w-[35%] shrink-0'>
-                        <div className='sticky top-12'>
+                        <div className='sticky top-28 space-y-6'>
                             <div className='w-full aspect-[2/3] bg-gray-900 rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)] border border-gray-800 relative group'>
                                 {book.image ? (
                                     <img src={book.image} alt={book.name} className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-105' />
@@ -95,6 +143,46 @@ const Viewbook = () => {
                                 )}
                                 <div className='absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60'></div>
                             </div>
+
+                            {/* READER ACTION BUTTONS */}
+                            <div className='space-y-3'>
+                              <button
+                                onClick={handleBorrow}
+                                disabled={borrowing || isAlreadyBorrowed}
+                                className={`w-full py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xl ${
+                                  isAlreadyBorrowed || borrowedSuccess
+                                    ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30 active:scale-95'
+                                }`}
+                              >
+                                {isAlreadyBorrowed || borrowedSuccess ? (
+                                  <>
+                                    <Check className='w-4 h-4 text-emerald-400' />
+                                    <span>Borrowed / Active Loan</span>
+                                  </>
+                                ) : borrowing ? (
+                                  <span>Processing Loan...</span>
+                                ) : (
+                                  <>
+                                    <BookmarkPlus className='w-4 h-4' />
+                                    <span>Borrow This Book</span>
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                onClick={handleToggleFav}
+                                className={`w-full py-3.5 px-6 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer border ${
+                                  isFav
+                                    ? 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+                                    : 'bg-[#121217] hover:bg-[#1a1a20] text-gray-300 border-gray-800'
+                                }`}
+                              >
+                                <Heart className={`w-4 h-4 ${isFav ? 'fill-rose-400 text-rose-400' : 'text-gray-400'}`} />
+                                <span>{isFav ? 'Saved in Favorites' : 'Save to Favorites'}</span>
+                              </button>
+                            </div>
+
                         </div>
                     </div>
 
@@ -102,8 +190,11 @@ const Viewbook = () => {
                     <div className='w-full lg:w-[65%] flex flex-col'>
                         <div className='space-y-6'>
                             <div className='space-y-2'>
-                                <p className='text-blue-500 text-xs font-black uppercase tracking-[0.4em] font-[Outfit]'>Book Profile</p>
-                                <h1 className='text-5xl md:text-7xl font-black leading-[0.95] tracking-tighter uppercase italic font-[Outfit]'>{book.name}</h1>
+                                <p className='text-blue-500 text-xs font-black uppercase tracking-[0.4em] font-[Outfit] flex items-center gap-2'>
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                  Book Profile
+                                </p>
+                                <h1 className='text-4xl md:text-6xl font-black leading-[0.95] tracking-tighter uppercase italic font-[Outfit]'>{book.name}</h1>
                             </div>
                             
                             <div className='flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8'>
@@ -133,21 +224,24 @@ const Viewbook = () => {
                                 </div>
                             </div>
 
-                            <div className='pt-10'>
+                            <div className='pt-8'>
                                 <h3 className='text-xs font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-3'>
                                     <span>Summary</span>
                                     <div className='h-px flex-1 bg-gray-800/50'></div>
                                 </h3>
-                                <p className='text-gray-400 leading-relaxed text-lg font-medium selection:bg-blue-500/50'>
+                                <p className='text-gray-400 leading-relaxed text-base sm:text-lg font-medium selection:bg-blue-500/50'>
                                     {book.description || 'This work remains one of the library\'s most intriguing pieces, offering a window into the author\'s unique perspective and creative depth.'}
                                 </p>
                             </div>
 
-                            {/* Copies & Status section */}
+                            {/* Copies & Inventory section */}
                             <div className='mt-12 pt-10 border-t border-gray-800/50'>
                                 <div className='flex items-center justify-between mb-8'>
                                     <h3 className='text-2xl font-black uppercase italic font-[Outfit] tracking-tighter'>Inventory Status</h3>
-                                    <div className='bg-blue-600 text-[10px] font-black px-3 py-1 rounded-full'>ACTIVE</div>
+                                    <div className='bg-blue-600 text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1.5'>
+                                      <ShieldCheck className="w-3.5 h-3.5" />
+                                      ACTIVE HOLDINGS
+                                    </div>
                                 </div>
                                 
                                 {loadingCopies ? (

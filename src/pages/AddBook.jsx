@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
+import Navbar from '../components/Navbar';
 
 const AddBook = () => {
     const [bookIdp1, setBookIdp1] = useState('');
@@ -242,7 +243,8 @@ const AddBook = () => {
             });
     }
   return (
-    <div className='min-h-screen w-full bg-[#030712] text-white p-4 md:p-12 flex items-center justify-center font-[Inter]'>
+    <div className='min-h-screen w-full bg-[#030712] text-white pt-24 pb-12 px-4 md:px-12 flex items-center justify-center font-[Inter] relative'>
+        <Navbar />
         <div className='max-w-4xl w-full bg-gray-900/40 backdrop-blur-2xl p-8 md:p-12 rounded-[3rem] border border-gray-800/50 shadow-2xl'>
             <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4'>
                 <div>

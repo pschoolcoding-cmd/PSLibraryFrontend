@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap');
+@import "tailwindcss";
 
 @layer base {
   :root {
@@ -18,4 +18,15 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+}
+
+/* Custom 3D animations and page-turning styling */
+.backface-hidden {
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d !important;
+  -webkit-transform-style: preserve-3d !important;
 }

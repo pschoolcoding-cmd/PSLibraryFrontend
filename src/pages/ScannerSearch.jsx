@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import Loader from '../components/Loader';
+import Navbar from '../components/Navbar';
 
 const ScannerSearch = () => {
     const navigate = useNavigate();
@@ -35,15 +36,12 @@ const ScannerSearch = () => {
                     qrbox: { width: 250, height: 150 }
                 },
                 (decodedText) => {
-                    // Assuming ISBN-13 is scanned
                     handleScanSuccess(decodedText);
                     scanner.stop().then(() => {
                         setIsScanning(false);
                     }).catch(err => console.error(err));
                 },
-                (errorMessage) => {
-                    // Silently ignore scan errors
-                }
+                (errorMessage) => {}
             );
         } catch (err) {
             setError("Camera access failed. Please ensure permissions are granted.");
@@ -64,7 +62,6 @@ const ScannerSearch = () => {
     };
 
     const handleScanSuccess = (text) => {
-        // Barcode might have extra chars, take all digits
         const digits = text.replace(/[^0-9]/g, '');
         if (digits.length === 13 || digits.length === 10) {
             const newSlots = Array(13).fill('');
@@ -79,12 +76,11 @@ const ScannerSearch = () => {
     };
 
     const handleSlotChange = (index, value) => {
-        const char = value.slice(-1); // Only take last character
+        const char = value.slice(-1);
         const newSlots = [...slots];
         newSlots[index] = char;
         setSlots(newSlots);
         
-        // Auto-focus next slot
         if (char && index < 12) {
             const nextInput = document.getElementById(`slot-${index + 1}`);
             if (nextInput) nextInput.focus();
@@ -105,13 +101,9 @@ const ScannerSearch = () => {
         setLoading(true);
         setError(null);
         try {
-            // Build regex: empty slots are dots
             let pattern = currentSlots.map(s => s === '' ? '.' : s).join('');
-            
-            // Remove trailing dots to allow matching shorter IDs or prefixes
             pattern = pattern.replace(/\.*$/, '');
 
-            // If all were dots (now empty), don't search or handle as empty
             if (pattern === '') {
                 setBooks([]);
                 setLoading(false);
@@ -127,7 +119,6 @@ const ScannerSearch = () => {
             const result = await response.json();
             
             if (result && result.data) {
-                // Backend now handles grouping and provides copyCount
                 setBooks(result.data);
             }
         } catch (err) {
@@ -138,7 +129,8 @@ const ScannerSearch = () => {
     };
 
     return (
-        <div className='min-h-screen w-full bg-black text-white p-4 md:p-8 flex flex-col items-center'>
+        <div className='min-h-screen w-full bg-black text-white pt-24 pb-12 px-4 md:px-8 flex flex-col items-center relative'>
+            <Navbar />
             <div className='max-w-4xl w-full'>
                 <div className='flex justify-between items-center mb-8'>
                     <button onClick={() => navigate('/')} className='bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors'>
