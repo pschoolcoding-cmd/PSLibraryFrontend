@@ -10,6 +10,10 @@ export default function Signup() {
   const { signup, googleLogin } = useAuth();
 
   const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [birthdate, setBirthdate] = useState('');
+  const [studentClass, setStudentClass] = useState('');
+  const [isExternal, setIsExternal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -109,7 +113,7 @@ export default function Signup() {
     try {
       setLoading(true);
       setError('');
-      await signup(name, email, password);
+      await signup(name, email, password, { surname, birthdate, studentClass, isExternal });
       navigate('/account');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -190,23 +194,75 @@ export default function Signup() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2 font-[Outfit]">
-                Full Name
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
-                  <User className="w-4 h-4" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2 font-[Outfit]">
+                  First Name *
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="First Name"
+                    required
+                    className="w-full bg-[#121216] border border-gray-800 focus:border-emerald-500 text-white text-xs sm:text-sm rounded-2xl pl-10 pr-3 py-3.5 transition-all outline-none"
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2 font-[Outfit]">
+                  Surname
+                </label>
                 <input
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Alexander Wright"
-                  required
-                  className="w-full bg-[#121216] border border-gray-800 focus:border-emerald-500 text-white text-xs sm:text-sm rounded-2xl pl-10 pr-4 py-3.5 transition-all outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  value={surname}
+                  onChange={(e) => setSurname(e.target.value)}
+                  placeholder="Last Name"
+                  className="w-full bg-[#121216] border border-gray-800 focus:border-emerald-500 text-white text-xs sm:text-sm rounded-2xl px-4 py-3.5 transition-all outline-none"
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2 font-[Outfit]">
+                  Birthdate
+                </label>
+                <input
+                  type="date"
+                  value={birthdate}
+                  onChange={(e) => setBirthdate(e.target.value)}
+                  className="w-full bg-[#121216] border border-gray-800 focus:border-emerald-500 text-white text-xs sm:text-sm rounded-2xl px-3 py-3.5 transition-all outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2 font-[Outfit]">
+                  Class / Grade
+                </label>
+                <input
+                  type="text"
+                  value={studentClass}
+                  onChange={(e) => setStudentClass(e.target.value)}
+                  placeholder="e.g. 10-A"
+                  className="w-full bg-[#121216] border border-gray-800 focus:border-emerald-500 text-white text-xs sm:text-sm rounded-2xl px-4 py-3.5 transition-all outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-[#121216] border border-gray-800 rounded-2xl cursor-pointer" onClick={() => setIsExternal(!isExternal)}>
+              <input
+                type="checkbox"
+                checked={isExternal}
+                onChange={(e) => setIsExternal(e.target.checked)}
+                className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
+              />
+              <span className="text-xs text-gray-300 font-medium">External Reader (Non-Student Member)</span>
             </div>
 
             <div>

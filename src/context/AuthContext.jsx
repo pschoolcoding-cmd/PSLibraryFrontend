@@ -58,13 +58,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Sign Up with Email & Password
-  const signup = async (name, email, password) => {
+  const signup = async (name, email, password, extraFields = {}) => {
     setAuthError(null);
     try {
       const response = await fetch(`${API_BASE_URL}/readers/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password, ...extraFields })
       });
 
       const data = await response.json();
@@ -76,6 +76,29 @@ export const AuthProvider = ({ children }) => {
       return data.reader;
     } catch (err) {
       setAuthError(err.message);
+      throw err;
+    }
+  };
+
+  // Create Student Account (Librarian/Admin Action)
+  const createStudentAccount = async (studentData) => {
+    if (!token) throw new Error('Authorization token missing');
+    try {
+      const response = await fetch(`${API_BASE_URL}/readers/create-student`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(studentData)
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to create student account');
+      }
+      return data.reader;
+    } catch (err) {
       throw err;
     }
   };
@@ -255,6 +278,8 @@ export const AuthProvider = ({ children }) => {
         borrowBook,
         returnBook,
         toggleFavorite,
+        createStudentAccount,
+        isAdmin: reader?.role === 'admin',
         isAuthenticated: !!reader
       }}
     >

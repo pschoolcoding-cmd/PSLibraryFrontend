@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pslibrarybackend.onrender.com';
+const API_KEY = import.meta.env.VITE_API_KEY || 'supersecret';
 
 const AddBook = () => {
+    const { isAdmin, reader } = useAuth();
     const [bookIdp1, setBookIdp1] = useState('');
     const [bookIdp2, setBookIdp2] = useState('');
     const [title, setTitle] = useState('');
@@ -215,11 +220,11 @@ const AddBook = () => {
                 image: imageUrl,
             })
         // Handle adding a new book
-        fetch('https://pslibrarybackend.onrender.com/books', {
+        fetch(`${API_BASE_URL}/books`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                "x-api-key":"supersecret"
+                "x-api-key": API_KEY
             },
             body: JSON.stringify({
                 name: title,
@@ -229,6 +234,7 @@ const AddBook = () => {
                 description: description,
                 image: imageUrl,
                 borrowed: location || '0',
+                whoadded: reader?.email || 'admin'
             }),
         })
             .then((response) => response.json())
