@@ -8,6 +8,35 @@ export default function BookHero({ customPages, title }) {
   const navigate = useNavigate();
   const [bookSearchQuery, setBookSearchQuery] = useState('');
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const [stats, setStats] = useState({
+    totalBooks: 0,
+    uniqueTitles: 0,
+    totalReaders: 0,
+    activeBorrows: 0,
+    categoriesCount: 0
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/books/stats`, {
+          headers: { 'x-api-key': import.meta.env.VITE_API_KEY || 'supersecret' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch real stats in BookHero:', err);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, [API_BASE_URL]);
+
   // Track scroll inside the sticky section (400vh tall)
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -62,27 +91,33 @@ export default function BookHero({ customPages, title }) {
       </div>
     </div>,
 
-    // Page 2 (Right Spread 1)
+    // Page 2 (Right Spread 1) - LIVE SYSTEM STATISTICS
     <div className="flex flex-col h-full justify-between p-5 md:p-6 select-text bg-gradient-to-b from-amber-50/50 to-amber-100/10">
       <div>
-        <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-3">Featured Collections</h3>
-        <div className="grid grid-cols-2 gap-2.5">
+        <h3 className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-3 font-[Outfit] flex items-center gap-1.5">
+          <span>📊</span> Live Library Statistics
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
           {[
-            { tag: 'History', count: '1,420 items', color: 'border-amber-200 hover:bg-amber-150/40 text-amber-900 bg-amber-50/50' },
-            { tag: 'Philosophy', count: '890 items', color: 'border-purple-200 hover:bg-purple-150/40 text-purple-900 bg-purple-50/50' },
-            { tag: 'Sci-Fi', count: '2,110 items', color: 'border-blue-200 hover:bg-blue-150/40 text-blue-900 bg-blue-50/50' },
-            { tag: 'Classics', count: '650 items', color: 'border-emerald-200 hover:bg-emerald-150/40 text-emerald-900 bg-emerald-50/50' }
+            { label: 'Total Copies', val: loadingStats ? '...' : stats.totalBooks, color: 'border-blue-200 hover:bg-blue-100/50 text-blue-900 bg-blue-50/60' },
+            { label: 'Unique Titles', val: loadingStats ? '...' : stats.uniqueTitles, color: 'border-violet-200 hover:bg-violet-100/50 text-violet-900 bg-violet-50/60' },
+            { label: 'Active Readers', val: loadingStats ? '...' : stats.totalReaders, color: 'border-emerald-200 hover:bg-emerald-100/50 text-emerald-900 bg-emerald-50/60' },
+            { label: 'Active Loans', val: loadingStats ? '...' : stats.activeBorrows, color: 'border-amber-200 hover:bg-amber-100/50 text-amber-900 bg-amber-50/60' }
           ].map((c, i) => (
-            <div key={i} className={`p-2.5 rounded-xl border transition-all ${c.color}`}>
-              <p className="font-bold text-xs">{c.tag}</p>
-              <p className="text-[9px] opacity-75">{c.count}</p>
+            <div key={i} className={`p-2 rounded-xl border transition-all ${c.color}`}>
+              <p className="font-extrabold text-sm md:text-base font-[Outfit]">{c.val}</p>
+              <p className="text-[9px] font-semibold opacity-80 uppercase tracking-wider">{c.label}</p>
             </div>
           ))}
+        </div>
+        <div className="mt-2 p-2 rounded-xl border border-rose-200 bg-rose-50/60 text-rose-900 flex items-center justify-between">
+          <span className="text-[9px] font-semibold uppercase tracking-wider">Genres & Categories</span>
+          <span className="font-extrabold text-sm font-[Outfit]">{loadingStats ? '...' : stats.categoriesCount}</span>
         </div>
       </div>
       <div className="flex justify-between items-center text-[10px] text-gray-400">
         <span>Page 02</span>
-        <span>COLLECTIONS</span>
+        <span>TELEMETRY</span>
       </div>
     </div>,
 
@@ -111,24 +146,25 @@ export default function BookHero({ customPages, title }) {
       </div>
     </div>,
 
-    // Page 4 (Right Spread 2)
+    // Page 4 (Right Spread 2) - SYSTEM TELEMETRY
     <div className="flex flex-col h-full justify-between p-5 md:p-6 select-text">
       <div>
         <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-3">System Stacking</h3>
-        <p className="text-gray-600 text-xs leading-relaxed mb-4">
-          Every physical checkout is tracked in real-time. Feel free to search library holdings using standard query strings or barcode scans.
+        <p className="text-gray-600 text-xs leading-relaxed mb-3">
+          Every physical checkout is tracked in real-time within our database index.
         </p>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {[
-            { label: 'Network Node', status: 'Online', val: 'bg-emerald-500' },
-            { label: 'API Backend Gateway', status: 'Connected', val: 'bg-indigo-500' },
-            { label: 'Active Sessions', status: '1,248 Users', val: 'bg-blue-500' }
+            { label: 'Database Holdings', status: `${stats.totalBooks} Volumes`, val: 'bg-emerald-500' },
+            { label: 'Unique Catalog Titles', status: `${stats.uniqueTitles} Titles`, val: 'bg-indigo-500' },
+            { label: 'Registered Readers', status: `${stats.totalReaders} Accounts`, val: 'bg-blue-500' },
+            { label: 'Current Borrowings', status: `${stats.activeBorrows} Active`, val: 'bg-amber-500' }
           ].map((item, idx) => (
             <div key={idx} className="flex justify-between items-center text-[10px] p-2 bg-gray-50 border border-gray-200 rounded-lg">
               <span className="text-gray-600 font-semibold">{item.label}</span>
               <span className="flex items-center gap-1.5 font-bold text-gray-800">
                 <span className={`w-2.5 h-2.5 rounded-full ${item.val}`} />
-                {item.status}
+                {loadingStats ? '...' : item.status}
               </span>
             </div>
           ))}
@@ -136,7 +172,7 @@ export default function BookHero({ customPages, title }) {
       </div>
       <div className="flex justify-between items-center text-[10px] text-gray-400">
         <span>Page 04</span>
-        <span>TELEMETRY</span>
+        <span>LIVE METRICS</span>
       </div>
     </div>,
 

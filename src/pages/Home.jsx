@@ -1,42 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import BookHero from '../components/BookHero';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { Search, ScanLine, BookOpen, Sparkles, Layers, ShieldCheck, ArrowUpRight, UserCheck, BookmarkCheck, Library, Tag } from 'lucide-react';
+import { Search, ScanLine, Sparkles, Layers, ShieldCheck, ArrowUpRight, BookmarkCheck } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-  const [stats, setStats] = useState({
-    totalBooks: 0,
-    uniqueTitles: 0,
-    totalReaders: 0,
-    activeBorrows: 0,
-    categoriesCount: 0
-  });
-  const [loadingStats, setLoadingStats] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/books/stats`, {
-          headers: { 'x-api-key': import.meta.env.VITE_API_KEY || 'supersecret' }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch real stats:', err);
-      } finally {
-        setLoadingStats(false);
-      }
-    };
-    fetchStats();
-  }, [API_BASE_URL]);
 
   return (
     <div className="w-full bg-[#030303] text-white overflow-x-clip">
@@ -67,64 +38,6 @@ export default function Home() {
             <p className="text-gray-400 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
               Our library system bridges the gap between classic volumes and state-of-the-art catalog tracking. Manage holdings, discover editions, and scan barcode IDs seamlessly.
             </p>
-          </div>
-
-          {/* REAL DYNAMIC SYSTEM STATS STRIP */}
-          <div className="mb-20 grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-[#0b0b0f] border border-blue-500/20 p-5 rounded-3xl text-center space-y-2 backdrop-blur-xl relative overflow-hidden group hover:border-blue-500/40 transition-all">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500" />
-              <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto text-blue-400">
-                <BookOpen className="w-5 h-5" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-black font-[Outfit] text-white">
-                {loadingStats ? '...' : stats.totalBooks}
-              </p>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Book Copies</p>
-            </div>
-
-            <div className="bg-[#0b0b0f] border border-violet-500/20 p-5 rounded-3xl text-center space-y-2 backdrop-blur-xl relative overflow-hidden group hover:border-violet-500/40 transition-all">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-violet-500" />
-              <div className="w-10 h-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto text-violet-400">
-                <Library className="w-5 h-5" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-black font-[Outfit] text-white">
-                {loadingStats ? '...' : stats.uniqueTitles}
-              </p>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Unique Titles</p>
-            </div>
-
-            <div className="bg-[#0b0b0f] border border-emerald-500/20 p-5 rounded-3xl text-center space-y-2 backdrop-blur-xl relative overflow-hidden group hover:border-emerald-500/40 transition-all">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500" />
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-400">
-                <UserCheck className="w-5 h-5" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-black font-[Outfit] text-white">
-                {loadingStats ? '...' : stats.totalReaders}
-              </p>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Readers</p>
-            </div>
-
-            <div className="bg-[#0b0b0f] border border-amber-500/20 p-5 rounded-3xl text-center space-y-2 backdrop-blur-xl relative overflow-hidden group hover:border-amber-500/40 transition-all">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto text-amber-400">
-                <BookmarkCheck className="w-5 h-5" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-black font-[Outfit] text-white">
-                {loadingStats ? '...' : stats.activeBorrows}
-              </p>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Books Checked Out</p>
-            </div>
-
-            <div className="col-span-2 md:col-span-1 bg-[#0b0b0f] border border-rose-500/20 p-5 rounded-3xl text-center space-y-2 backdrop-blur-xl relative overflow-hidden group hover:border-rose-500/40 transition-all">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-rose-500" />
-              <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto text-rose-400">
-                <Tag className="w-5 h-5" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-black font-[Outfit] text-white">
-                {loadingStats ? '...' : stats.categoriesCount}
-              </p>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Genres & Topics</p>
-            </div>
           </div>
 
           {/* Module Cards Grid */}
