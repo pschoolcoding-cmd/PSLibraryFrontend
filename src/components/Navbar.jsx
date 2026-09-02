@@ -6,7 +6,7 @@ import { BookOpen, Search, ScanLine, PlusCircle, User, LogOut, LayoutDashboard, 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { reader, logout, isAuthenticated } = useAuth();
+  const { reader, logout, isAuthenticated, isAdmin } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
@@ -54,17 +54,19 @@ export default function Navbar() {
             Scanner
           </button>
 
-          <button
-            onClick={() => navigate('/add')}
-            className={`text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
-              isActive('/add')
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <PlusCircle className="w-3.5 h-3.5" />
-            Add Book
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/add')}
+              className={`text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+                isActive('/add')
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              Add Book
+            </button>
+          )}
         </div>
 
         {/* Right Section: Auth State */}

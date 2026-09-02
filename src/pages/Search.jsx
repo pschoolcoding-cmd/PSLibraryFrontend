@@ -21,21 +21,23 @@ const Search = () => {
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+    const formatGenreLabel = (g) => {
+        if (!g) return '';
+        return String(g)
+            .replace(/^#+/, '')
+            .replace(/_/g, ' ')
+            .trim()
+            .replace(/\b\w/g, char => char.toUpperCase());
+    };
+
     const fetchGenres = async () => {
         try {
-            const cachedGenres = sessionStorage.getItem('library_genres');
-            if (cachedGenres) {
-                setAllGenres(JSON.parse(cachedGenres));
-                return;
-            }
-
             const response = await fetch(`${API_BASE_URL}/books/genres`, {
                 headers: { 'x-api-key': import.meta.env.VITE_API_KEY || '' }
             });
             if (response.ok) {
                 const data = await response.json();
                 setAllGenres(data);
-                sessionStorage.setItem('library_genres', JSON.stringify(data));
             }
         } catch (err) {
             console.error('Failed to fetch genres:', err);
@@ -130,7 +132,7 @@ const Search = () => {
                 </div>
                 
                 {/* Search and Filter Section */}
-                <div className='bg-gray-900/40 backdrop-blur-xl p-6 rounded-3xl mb-12 border border-gray-800/50 shadow-2xl'>
+                <div className='bg-gray-900/40 backdrop-blur-xl p-6 rounded-3xl mb-12 border border-gray-800/50 shadow-2xl space-y-6'>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                         <div className='space-y-2'>
                             <label className='block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1'>Quick Search</label>
@@ -147,7 +149,7 @@ const Search = () => {
                             </div>
                         </div>
                         <div className='space-y-2'>
-                            <label className='block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1'>Category</label>
+                            <label className='block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1'>Category Dropdown</label>
                             <select
                                 value={filterGenre}
                                 onChange={(e) => {
@@ -156,9 +158,9 @@ const Search = () => {
                                 }}
                                 className='w-full p-4 rounded-2xl bg-black/50 text-white border border-gray-800 focus:border-blue-500/50 outline-hidden transition-all appearance-none cursor-pointer'
                             >
-                                <option value=''>All Genres</option>
+                                <option value=''>All Categories</option>
                                 {allGenres.map(genre => (
-                                    <option key={genre} value={genre}>{genre}</option>
+                                    <option key={genre} value={genre}>{formatGenreLabel(genre)}</option>
                                 ))}
                             </select>
                         </div>
@@ -175,6 +177,42 @@ const Search = () => {
                                 <option value='recent'>Recently Added</option>
                                 <option value='name'>Name (A-Z)</option>
                             </select>
+                        </div>
+                    </div>
+
+                    {/* Interactive Category Chips Bar */}
+                    <div className="pt-4 border-t border-gray-800/60">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 font-[Outfit] flex items-center gap-2">
+                            <span>🏷️</span> Category Explorer
+                        </p>
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                            <button
+                                onClick={() => { setFilterGenre(''); setPage(1); }}
+                                className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                                    !filterGenre 
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400' 
+                                        : 'bg-black/50 text-gray-400 hover:text-white border border-gray-800 hover:border-gray-700'
+                                }`}
+                            >
+                                📚 All Categories
+                            </button>
+                            {allGenres.map((g) => {
+                                const clean = formatGenreLabel(g);
+                                const isSelected = filterGenre.toLowerCase() === g.toLowerCase() || filterGenre.toLowerCase() === clean.toLowerCase();
+                                return (
+                                    <button
+                                        key={g}
+                                        onClick={() => { setFilterGenre(g); setPage(1); }}
+                                        className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                                            isSelected 
+                                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400' 
+                                                : 'bg-black/50 text-gray-400 hover:text-white border border-gray-800 hover:border-gray-700'
+                                        }`}
+                                    >
+                                        {clean}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -228,11 +266,19 @@ const Search = () => {
                                                         {book.copyCount} COPIES
                                                     </span>
                                                 )}
-                                                {Array.isArray(book.genre) && book.genre.slice(0, 2).map((g, idx) => (
-                                                    <span key={idx} className='bg-gray-800 text-gray-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-gray-700 capitalize'>
-                                                        {g}
-                                                    </span>
-                                                ))}
+                                                {Array.isArray(book.genre) ? (
+                                                    book.genre.slice(0, 2).map((g, idx) => (
+                                                        <span key={idx} className='bg-blue-500/10 text-blue-300 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-blue-500/20 uppercase tracking-wider'>
+                                                            {formatGenreLabel(g)}
+                                                        </span>
+                                                    ))
+                                                ) : typeof book.genre === 'string' ? (
+                                                    book.genre.split(/[,#]/).filter(Boolean).slice(0, 2).map((g, idx) => (
+                                                        <span key={idx} className='bg-blue-500/10 text-blue-300 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-blue-500/20 uppercase tracking-wider'>
+                                                            {formatGenreLabel(g)}
+                                                        </span>
+                                                    ))
+                                                ) : null}
                                             </div>
                                         </div>
 

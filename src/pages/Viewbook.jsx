@@ -291,13 +291,25 @@ const Viewbook = () => {
                                 <p className='text-gray-500 text-[10px] font-black uppercase tracking-widest mb-3 italic'>Classified Under</p>
                                 <div className='flex flex-wrap gap-2'>
                                     {Array.isArray(book.genre) && book.genre.length > 0 ? (
-                                        book.genre.map((g, idx) => (
-                                            <span key={idx} className='bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-default'>
-                                                {g}
-                                            </span>
-                                        ))
+                                        book.genre.map((g, idx) => {
+                                            const clean = String(g).replace(/^#+/, '').replace(/_/g, ' ').trim();
+                                            return (
+                                                <span key={idx} className='bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-default'>
+                                                    {clean}
+                                                </span>
+                                            );
+                                        })
+                                    ) : typeof book.genre === 'string' && book.genre ? (
+                                        book.genre.split(/[,#]/).filter(Boolean).map((g, idx) => {
+                                            const clean = String(g).replace(/^#+/, '').replace(/_/g, ' ').trim();
+                                            return (
+                                                <span key={idx} className='bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-default'>
+                                                    {clean}
+                                                </span>
+                                            );
+                                        })
                                     ) : (
-                                        <span className='text-gray-600 text-xs italic'>Global Classification</span>
+                                        <span className='text-gray-600 text-xs italic'>General Literature</span>
                                     )}
                                 </div>
                             </div>

@@ -7,7 +7,33 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pslibrarybackend.o
 const API_KEY = import.meta.env.VITE_API_KEY || 'supersecret';
 
 const AddBook = () => {
-    const { isAdmin, reader } = useAuth();
+    const { isAdmin, reader, isAuthenticated } = useAuth();
+
+    if (!isAdmin) {
+      return (
+        <div className="min-h-screen bg-[#030303] text-white flex flex-col justify-between">
+          <Navbar />
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4">
+              <span className="text-2xl">🔒</span>
+            </div>
+            <h2 className="text-2xl font-black font-[Outfit] uppercase italic mb-2 text-amber-400">
+              Librarian Admin Access Only
+            </h2>
+            <p className="text-gray-400 text-sm max-w-md mb-6">
+              The Add Book catalog management page is reserved exclusively for registered Librarian Administrators. Readers may browse, search, and borrow from the public catalog.
+            </p>
+            <a
+              href="/search"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl shadow-lg shadow-blue-600/30 transition-all"
+            >
+              Browse Catalog Instead
+            </a>
+          </div>
+        </div>
+      );
+    }
+
     const [bookIdp1, setBookIdp1] = useState('');
     const [bookIdp2, setBookIdp2] = useState('');
     const [title, setTitle] = useState('');
