@@ -35,9 +35,11 @@ const AddBook = () => {
     }
 
     const [bookIdp1, setBookIdp1] = useState('');
-    const [bookIdp2, setBookIdp2] = useState('');
+    const [suxInput, setSuxInput] = useState('');
+    const [suxList, setSuxList] = useState([]);
     const [title, setTitle] = useState('');
     const [loading, setLoading] = useState(false);
+    const [loadingStatus, setLoadingStatus] = useState('');
     const [author, setAuthor] = useState('');
     const [description, setDescription] = useState('');
     const [genre, setGenre] = useState({});
@@ -106,6 +108,73 @@ const AddBook = () => {
         }
     };
 
+    // SUX parsing & range expansion (e.g., "1-5", "01-05", "1, 2, 3")
+    const parseSuxTokens = (rawInput) => {
+        if (!rawInput) return [];
+        const tokens = rawInput.split(/[,;\s]+/).map(s => s.trim()).filter(Boolean);
+        const result = [];
+
+        tokens.forEach(token => {
+            // Check for range format e.g. "1-5" or "01-05"
+            const rangeMatch = token.match(/^(\d+)-(\d+)$/);
+            if (rangeMatch) {
+                const startStr = rangeMatch[1];
+                const endStr = rangeMatch[2];
+                const start = parseInt(startStr, 10);
+                const end = parseInt(endStr, 10);
+                const padLength = startStr.startsWith('0') ? startStr.length : 0;
+
+                if (!isNaN(start) && !isNaN(end) && start <= end && (end - start) <= 100) {
+                    for (let i = start; i <= end; i++) {
+                        const val = padLength > 0 ? String(i).padStart(padLength, '0') : String(i);
+                        result.push(val);
+                    }
+                    return;
+                }
+            }
+            result.push(token);
+        });
+
+        return result;
+    };
+
+    const addSux = (val) => {
+        const parsed = parseSuxTokens(val);
+        if (parsed.length === 0) return;
+        setSuxList(prev => {
+            const next = [...prev];
+            parsed.forEach(item => {
+                if (!next.includes(item)) next.push(item);
+            });
+            return next;
+        });
+        setSuxInput('');
+    };
+
+    const handleSuxKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addSux(suxInput);
+        }
+    };
+
+    const handleSuxBlur = () => {
+        if (suxInput.trim()) {
+            addSux(suxInput);
+        }
+    };
+
+    const generateSuxRange = (count) => {
+        setSuxList(prev => {
+            const next = [...prev];
+            for (let i = 1; i <= count; i++) {
+                const code = String(i);
+                if (!next.includes(code)) next.push(code);
+            }
+            return next;
+        });
+    };
+
     const addTag = (value) => {
         const parts = value.split(',').map(s => s.trim()).filter(Boolean);
         if (parts.length === 0) return;
@@ -127,19 +196,22 @@ const AddBook = () => {
     const handleBlur = () => {
         if (tagInput) addTag(tagInput);
     };
-    const clean = () =>{
+
+    const clean = () => {
         setTags([]);
         setTitle('');
         setAuthor('');
         setDescription('');
         setBookIdp1('');
-        setBookIdp2('');
+        setSuxInput('');
+        setSuxList([]);
         setTagInput('');
         setImage('');
         setUploadedImageUrl('');
         setImageStatus('');
         setLocation('0');
-    }
+        setLoadingStatus('');
+    };
 
     const uploadToImgBB = async (base64Image) => {
         const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
@@ -225,54 +297,91 @@ const AddBook = () => {
     }, []);
 
     const newbook = async () => {
+        if (!title.trim()) {
+            alert('Please enter a volume title.');
+            return;
+        }
+        if (!bookIdp1.trim()) {
+            alert('Please enter a Base ISBN identifier.');
+            return;
+        }
+
+        // Determine final SUX list to register
+        let finalSuxList = [...suxList];
+        if (suxInput.trim()) {
+            const parsed = parseSuxTokens(suxInput);
+            parsed.forEach(item => {
+                if (!finalSuxList.includes(item)) finalSuxList.push(item);
+            });
+            setSuxList(finalSuxList);
+            setSuxInput('');
+        }
+
+        if (finalSuxList.length === 0) {
+            finalSuxList = ['1']; // Default copy suffix if none specified
+        }
+
         setLoading(true);
+        setLoadingStatus('Preparing image asset...');
         
         let imageUrl = uploadedImageUrl; // Use the already uploaded ImgBB URL
         if (!imageUrl && image) {
-            // Fallback: if image wasn't uploaded yet, do it now
             imageUrl = await uploadToImgBB(image);
             if (!imageUrl) {
                 setLoading(false);
+                setLoadingStatus('');
                 alert('Failed to upload image to ImgBB. Please check your API key.');
                 return;
             }
         }
-        console.log({
-                name: title,
-                bid: bookIdp1+"-"+bookIdp2,
-                genre: genre,
-                author: author,
-                description: description,
-                image: imageUrl,
-            })
-        // Handle adding a new book
-        fetch(`${API_BASE_URL}/books`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                "x-api-key": API_KEY
-            },
-            body: JSON.stringify({
-                name: title,
-                bid: bookIdp1+"-"+bookIdp2,
-                genre: genre,
-                author: author,
-                description: description,
-                image: imageUrl,
-                borrowed: location || '0',
-                whoadded: reader?.email || 'admin'
-            }),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                console.log('Success:', data);
-                setLoading(false);
-                clean()
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                setLoading(false);
-            });
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (let i = 0; i < finalSuxList.length; i++) {
+            const suxCode = finalSuxList[i];
+            const bid = `${bookIdp1.trim()}-${suxCode}`;
+            setLoadingStatus(`Registering Copy ${i + 1} of ${finalSuxList.length} (SUX: ${suxCode})...`);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/books`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "x-api-key": API_KEY
+                    },
+                    body: JSON.stringify({
+                        name: title,
+                        bid: bid,
+                        genre: genre,
+                        author: author,
+                        description: description,
+                        image: imageUrl,
+                        borrowed: location || '0',
+                        whoadded: reader?.email || 'admin'
+                    }),
+                });
+
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            } catch (error) {
+                console.error(`Error adding copy with SUX ${suxCode}:`, error);
+                failCount++;
+            }
+        }
+
+        setLoading(false);
+        setLoadingStatus('');
+
+        if (successCount > 0) {
+            alert(`Successfully registered ${successCount} ${successCount === 1 ? 'copy' : 'copies'} of "${title}" into the catalog!${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+            clean();
+        } else {
+            alert('Failed to register book copies. Please check backend network connection.');
+        }
     }
   return (
     <div className='min-h-screen w-full bg-[#030712] text-white pt-24 pb-12 px-4 md:px-12 flex items-center justify-center font-[Inter] relative'>
@@ -353,11 +462,105 @@ const AddBook = () => {
                         >
                             {isScanning ? 'Deactivate Lens' : '📷 Optical ISBN Scan'}
                         </button>
-                        <div className='flex items-center gap-3'>
-                            <div className='flex-1 flex items-center gap-2 bg-black/50 p-1.5 rounded-2xl border border-gray-800 focus-within:border-blue-500/40 transition-all shadow-inner'>
-                                <input type="text" placeholder="BASE ISBN" className='p-3 bg-transparent outline-none w-full font-mono text-sm tracking-widest border-none' value={bookIdp1} onChange={(e) => setBookIdp1(e.target.value)} />
-                                <span className='font-black text-gray-700'>—</span>
-                                <input type="text" placeholder="SUX" className='p-3 bg-transparent outline-none w-20 font-mono text-sm tracking-widest border-none text-blue-400' value={bookIdp2} onChange={(e) => setBookIdp2(e.target.value)} />
+
+                        <div className='space-y-2'>
+                            <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1'>Base ISBN</label>
+                            <div className='bg-black/50 p-1.5 rounded-2xl border border-gray-800 focus-within:border-blue-500/40 transition-all shadow-inner'>
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g. 9780131103627" 
+                                    className='p-3 bg-transparent outline-none w-full font-mono text-sm tracking-widest border-none text-white placeholder:text-gray-700' 
+                                    value={bookIdp1} 
+                                    onChange={(e) => setBookIdp1(e.target.value)} 
+                                />
+                            </div>
+                        </div>
+
+                        <div className='space-y-2'>
+                            <div className='flex items-center justify-between ml-1'>
+                                <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest'>Copy Identifiers (SUX List)</label>
+                                <div className='flex items-center gap-2'>
+                                    <span className='bg-blue-500/20 text-blue-400 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-blue-500/30 font-mono'>
+                                        {suxList.length} {suxList.length === 1 ? 'Copy' : 'Copies'}
+                                    </span>
+                                    {suxList.length > 0 && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setSuxList([])} 
+                                            className='text-[10px] text-gray-500 hover:text-red-400 font-bold uppercase transition-colors'
+                                        >
+                                            Clear All
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className='bg-black/50 rounded-2xl p-2 border border-gray-800 focus-within:border-blue-500/40 transition-all shadow-inner min-h-[90px] flex flex-col justify-between'>
+                                <div className='flex items-center gap-2'>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Type SUX (e.g. 01, 02 or range 1-5) & press Enter..." 
+                                        className='p-3 bg-transparent outline-none w-full font-mono text-xs tracking-wider border-none text-blue-400 placeholder:text-gray-700' 
+                                        value={suxInput} 
+                                        onChange={(e) => setSuxInput(e.target.value)} 
+                                        onKeyDown={handleSuxKeyDown}
+                                        onBlur={handleSuxBlur}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => addSux(suxInput)}
+                                        className='px-4 py-2 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded-xl text-xs font-black uppercase transition-all shrink-0 border border-blue-500/30 cursor-pointer'
+                                    >
+                                        + Add
+                                    </button>
+                                </div>
+
+                                <div className='flex flex-wrap items-center gap-1.5 p-2'>
+                                    {suxList.map((code, idx) => (
+                                        <span key={`${code}-${idx}`} className='bg-blue-500/10 text-blue-300 border border-blue-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5 transition-all hover:bg-blue-500/20 font-mono text-xs'>
+                                            <span className='text-[10px] text-blue-500 font-bold'>#</span>
+                                            <span className='font-bold'>{code}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setSuxList(prev => prev.filter((_, i) => i !== idx))}
+                                                className='text-sm font-black leading-none text-gray-400 hover:text-white transition-colors ml-1 cursor-pointer'
+                                            >
+                                                ×
+                                            </button>
+                                        </span>
+                                    ))}
+                                    {suxList.length === 0 && (
+                                        <p className='text-[10px] text-gray-600 italic px-2 py-1'>
+                                            💡 Type individual codes, comma-separated, or use ranges like <span className='text-blue-400 font-mono font-bold'>1-5</span> to add multiple copy suffixes.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Quick SUX Range Generator */}
+                            <div className='flex items-center gap-2 pt-1'>
+                                <span className='text-[9px] font-black uppercase tracking-wider text-gray-600 ml-1'>Quick Add Range:</span>
+                                <button
+                                    type="button"
+                                    onClick={() => generateSuxRange(3)}
+                                    className='px-2.5 py-1 bg-gray-800/60 hover:bg-gray-700 text-gray-300 text-[10px] font-bold rounded-lg transition-colors border border-gray-700/50 cursor-pointer'
+                                >
+                                    1..3
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => generateSuxRange(5)}
+                                    className='px-2.5 py-1 bg-gray-800/60 hover:bg-gray-700 text-gray-300 text-[10px] font-bold rounded-lg transition-colors border border-gray-700/50 cursor-pointer'
+                                >
+                                    1..5
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => generateSuxRange(10)}
+                                    className='px-2.5 py-1 bg-gray-800/60 hover:bg-gray-700 text-gray-300 text-[10px] font-bold rounded-lg transition-colors border border-gray-700/50 cursor-pointer'
+                                >
+                                    1..10
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -391,7 +594,7 @@ const AddBook = () => {
                                         <button
                                             type="button"
                                             onClick={() => setTags(prev => prev.filter(x => x !== t))}
-                                            className='text-lg font-black leading-none hover:text-white transition-colors'
+                                            className='text-lg font-black leading-none hover:text-white transition-colors cursor-pointer'
                                         >
                                             ×
                                         </button>
@@ -409,10 +612,10 @@ const AddBook = () => {
                     <button 
                         type="submit" 
                         disabled={loading}
-                        className={`mt-4 bg-white text-black py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-xs shadow-2xl transition-all active:scale-95 ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50'}`} 
+                        className={`mt-4 bg-white text-black py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-xs shadow-2xl transition-all active:scale-95 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50'}`} 
                         onClick={newbook}
                     >
-                        {loading ? 'Processing Registry...' : 'Authorize Addition'}
+                        {loading ? (loadingStatus || 'Processing Registry...') : `Authorize Addition (${suxList.length > 0 ? suxList.length : 1} ${suxList.length === 1 ? 'Copy' : 'Copies'})`}
                     </button>
                 </div>
             </div>
