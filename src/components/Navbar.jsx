@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { BookOpen, Search, ScanLine, PlusCircle, User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { BookOpen, Search, ScanLine, PlusCircle, User, LogOut, LayoutDashboard, ChevronDown, Sparkles } from 'lucide-react';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -55,17 +55,31 @@ export default function Navbar() {
           </button>
 
           {isAdmin && (
-            <button
-              onClick={() => navigate('/add')}
-              className={`text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
-                isActive('/add')
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              Add Book
-            </button>
+            <>
+              <button
+                onClick={() => navigate('/admin/genres')}
+                className={`text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+                  isActive('/admin/genres') || isActive('/genres')
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+                AI Genres
+              </button>
+
+              <button
+                onClick={() => navigate('/add')}
+                className={`text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+                  isActive('/add')
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                Add Book
+              </button>
+            </>
           )}
         </div>
 

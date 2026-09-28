@@ -53,6 +53,19 @@ const AddBook = () => {
     // Genre tags input UI and logic
     const [tagInput, setTagInput] = useState('');
     const [tags, setTags] = useState([]);
+    const [masterGenres, setMasterGenres] = useState([]);
+
+    // Fetch master canonical genres for admin quick-selection
+    React.useEffect(() => {
+        fetch(`${API_BASE_URL}/books/genre-organizer/status`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && Array.isArray(data.masterGenres)) {
+                    setMasterGenres(data.masterGenres);
+                }
+            })
+            .catch(err => console.warn('Could not fetch master genres for AddBook:', err));
+    }, []);
 
     // keep the original `genre` state in sync with tag list
     React.useEffect(() => {
@@ -577,7 +590,10 @@ const AddBook = () => {
                     </div>
 
                     <div className='space-y-2 text-black'>
-                        <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1'>Classification Tags</label>
+                        <div className='flex items-center justify-between ml-1'>
+                            <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest'>Classification Tags</label>
+                            <span className='text-[9px] font-black text-indigo-400 uppercase tracking-wider'>Standard Master List Available</span>
+                        </div>
                         <div className='bg-black/50 rounded-[1.5rem] p-2 border border-gray-800 focus-within:border-blue-500/40 transition-all shadow-inner min-h-[100px] flex flex-col'>
                             <input
                                 value={tagInput}
@@ -602,6 +618,40 @@ const AddBook = () => {
                                 ))}
                             </div>
                         </div>
+
+                        {/* Standard Master Canonical Genre Quick-Select Chips */}
+                        {masterGenres.length > 0 && (
+                            <div className='pt-1 text-white'>
+                                <p className='text-[9px] font-black uppercase tracking-wider text-indigo-400 mb-1.5 ml-1'>
+                                    ✨ Preferred Canonical Master Tags (Click to select):
+                                </p>
+                                <div className='flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 border border-gray-800/60 rounded-xl bg-black/30'>
+                                    {masterGenres.map((mg) => {
+                                        const isSelected = tags.includes(mg);
+                                        return (
+                                            <button
+                                                key={mg}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isSelected) {
+                                                        setTags(prev => prev.filter(t => t !== mg));
+                                                    } else {
+                                                        setTags(prev => [...prev, mg]);
+                                                    }
+                                                }}
+                                                className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer font-mono border ${
+                                                    isSelected 
+                                                        ? 'bg-indigo-600 text-white border-indigo-400 shadow-sm shadow-indigo-600/30' 
+                                                        : 'bg-gray-800/80 text-gray-400 border-gray-700 hover:text-indigo-300 hover:border-indigo-500/40'
+                                                }`}
+                                            >
+                                                #{mg} {isSelected ? '✓' : '+'}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className='space-y-2'>
