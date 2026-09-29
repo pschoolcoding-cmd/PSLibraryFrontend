@@ -26,7 +26,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 export default function GenreOrganizer() {
   const { isAdmin } = useAuth();
 
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
+  // Do not automatically reuse a browser-stored key. A stale OAuth token or API
+  // key would override the server's GEMINI_API_KEY and cause Gemini 401 errors.
+  const [apiKey, setApiKey] = useState('');
   const [showKeyInput, setShowKeyInput] = useState(false);
   
   const [status, setStatus] = useState(null);
@@ -47,8 +49,7 @@ export default function GenreOrganizer() {
   }, []);
 
   const saveApiKey = (key) => {
-    setApiKey(key);
-    localStorage.setItem('gemini_api_key', key);
+    setApiKey(key.trim());
     setShowKeyInput(false);
   };
 
@@ -70,12 +71,7 @@ export default function GenreOrganizer() {
   };
 
   const processBatch = async () => {
-    const keyToUse = apiKey || import.meta.env.VITE_GEMINI_API_KEY || '';
-    if (!keyToUse) {
-      alert('Please enter a Gemini API key in the top settings panel to start AI genre organization.');
-      setShowKeyInput(true);
-      return null;
-    }
+    const keyToUse = apiKey.trim();
 
     try {
       setCurrentActionMsg('Sending 10-book batch to Gemini AI...');
@@ -83,10 +79,10 @@ export default function GenreOrganizer() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-gemini-api-key': keyToUse
+          ...(keyToUse ? { 'x-gemini-api-key': keyToUse } : {})
         },
         body: JSON.stringify({
-          apiKey: keyToUse,
+          ...(keyToUse ? { apiKey: keyToUse } : {}),
           batchSize: 10
         })
       });
@@ -265,7 +261,7 @@ export default function GenreOrganizer() {
               className="bg-gray-800/80 hover:bg-gray-700 text-gray-200 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border border-gray-700 flex items-center gap-2 cursor-pointer"
             >
               <Key className="w-4 h-4 text-indigo-400" />
-              {apiKey ? 'API Key Configured' : 'Set Gemini Key'}
+              {apiKey ? 'Session Key Configured' : 'Server Key Active'}
             </button>
           </div>
         </div>
@@ -283,7 +279,7 @@ export default function GenreOrganizer() {
               <button onClick={() => setShowKeyInput(false)} className="text-xs text-gray-400 hover:text-white">✕</button>
             </div>
             <p className="text-xs text-gray-300 mb-4">
-              Enter your Google Gemini API key below. (If not provided, the server will use <code className="bg-black/50 px-1.5 py-0.5 rounded text-indigo-300">GEMINI_API_KEY</code> from backend environment).
+              The server uses its private <code className="bg-black/50 px-1.5 py-0.5 rounded text-indigo-300">GEMINI_API_KEY</code> by default. Optionally enter a different Gemini API key for this browser session only; it is not saved.
             </p>
             <div className="flex items-center gap-3">
               <input
