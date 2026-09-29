@@ -32,7 +32,9 @@ const Viewbook = () => {
     const isAlreadyBorrowed = reader?.borrowedBooks?.some(
       b => (b.bookId === id || b.bookId === book?.bid) && b.status === 'active'
     );
-
+    
+    
+    
     useEffect(() => {
         const fetchBook = async () => {
             try {
@@ -44,6 +46,7 @@ const Viewbook = () => {
                     throw new Error('Failed to fetch book details');
                 }
                 const data = await response.json();
+                    sameisbn(data, 1878)
                 setBook(data);
                 setEditName(data.name || '');
                 setEditAuthor(data.author || '');
@@ -169,6 +172,7 @@ const Viewbook = () => {
             </div>
         );
     }
+
 
     return (
         <div className='min-h-screen w-full bg-[#030712] text-white pt-24 pb-12 px-4 md:px-12 overflow-y-auto selection:bg-blue-500/30 font-[Inter] relative'>

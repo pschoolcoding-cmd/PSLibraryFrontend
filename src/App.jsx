@@ -11,6 +11,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import AccountDashboard from './pages/AccountDashboard'
 import GenreOrganizer from './pages/GenreOrganizer'
+import AdminPanel from './pages/AdminPanel'
 
 // Google OAuth Client ID (from environment or default placeholder)
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1089234567890-demo.apps.googleusercontent.com';
@@ -24,6 +25,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search />} />
             <Route path="/add" element={<AddBook />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/admin/panel" element={<AdminPanel />} />
             <Route path="/admin/genres" element={<GenreOrganizer />} />
             <Route path="/genres" element={<GenreOrganizer />} />
             <Route path="/book/:id" element={<Viewbook />} />

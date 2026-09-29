@@ -57,6 +57,18 @@ export default function Navbar() {
           {isAdmin && (
             <>
               <button
+                onClick={() => navigate('/admin')}
+                className={`text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+                  isActive('/admin') || isActive('/admin/panel')
+                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-rose-400" />
+                Admin Panel
+              </button>
+
+              <button
                 onClick={() => navigate('/admin/genres')}
                 className={`text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
                   isActive('/admin/genres') || isActive('/genres')
@@ -118,6 +130,19 @@ export default function Navbar() {
                       <p className="text-[11px] text-gray-400 truncate">{reader?.email}</p>
                     </div>
 
+                    {isAdmin && (
+                      <button
+                        onClick={() => {
+                          setDropdownOpen(false);
+                          navigate('/admin');
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-rose-300 hover:text-white hover:bg-rose-600/10 hover:border-rose-500/20 border border-transparent transition-all flex items-center gap-2.5 mb-1"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-rose-400" />
+                        Admin Console
+                      </button>
+                    )}
+
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
@@ -125,7 +150,7 @@ export default function Navbar() {
                       }}
                       className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white hover:bg-blue-600/10 hover:border-blue-500/20 border border-transparent transition-all flex items-center gap-2.5"
                     >
-                      <LayoutDashboard className="w-4 h-4 text-blue-400" />
+                      <User className="w-4 h-4 text-blue-400" />
                       Account Dashboard
                     </button>
 
