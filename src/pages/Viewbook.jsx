@@ -46,7 +46,6 @@ const Viewbook = () => {
                     throw new Error('Failed to fetch book details');
                 }
                 const data = await response.json();
-                    sameisbn(data, 1878)
                 setBook(data);
                 setEditName(data.name || '');
                 setEditAuthor(data.author || '');
