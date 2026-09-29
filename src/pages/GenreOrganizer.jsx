@@ -73,6 +73,13 @@ export default function GenreOrganizer() {
   const processBatch = async () => {
     const keyToUse = apiKey.trim();
 
+    if (/^Bearer\s+/i.test(keyToUse) || /^ya29\./.test(keyToUse) || keyToUse.split('.').length === 3) {
+      const message = 'Enter a Gemini API key from Google AI Studio, not an OAuth, ID, or Bearer token.';
+      setCurrentActionMsg(`Error: ${message}`);
+      alert(message);
+      return null;
+    }
+
     try {
       setCurrentActionMsg('Sending 10-book batch to Gemini AI...');
       const res = await fetch(`${API_BASE_URL}/books/genre-organizer/organize-batch`, {
@@ -82,7 +89,6 @@ export default function GenreOrganizer() {
           ...(keyToUse ? { 'x-gemini-api-key': keyToUse } : {})
         },
         body: JSON.stringify({
-          ...(keyToUse ? { apiKey: keyToUse } : {}),
           batchSize: 10
         })
       });
