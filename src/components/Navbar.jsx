@@ -31,7 +31,7 @@ export default function Navbar() {
             <BookOpen className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
           </div>
           <span className="font-[Outfit] font-black tracking-tight text-lg uppercase bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent group-hover:to-white transition-all italic">
-            Grand Library
+            PS Library
           </span>
         </div>
 
