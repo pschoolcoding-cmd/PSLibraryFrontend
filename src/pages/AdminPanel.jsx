@@ -963,7 +963,7 @@ export default function AdminPanel() {
                         <th className="py-4 px-6">{activeTab === 'books' ? 'Book Title & Cover' : 'User Profile'}</th>
                         <th className="py-4 px-6">{activeTab === 'books' ? 'Author / Creator' : 'Email Address'}</th>
                         <th className="py-4 px-6">{activeTab === 'books' ? 'Borrowed Status' : 'Role'}</th>
-                        <th className="py-4 px-6">{activeTab === 'books' ? 'Classification' : 'Class / Details'}</th>
+                        <th className="py-4 px-6">{activeTab === 'books' ? 'Added By' : 'Class / Details'}</th>
                         <th className="py-4 px-6 text-right">Action</th>
                       </tr>
                     </thead>
@@ -1040,17 +1040,26 @@ export default function AdminPanel() {
                                   )}
                                 </td>
 
-                                {/* Classification / Genre */}
+                                {/* Added By */}
                                 <td className="py-4 px-6">
-                                  <div className="flex flex-wrap gap-1">
-                                    {Array.isArray(book.genre) && book.genre.length > 0 ? (
-                                      book.genre.slice(0, 2).map((g, idx) => (
-                                        <span key={idx} className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-md">
-                                          #{g}
-                                        </span>
-                                      ))
-                                    ) : (
-                                      <span className="text-gray-400 italic text-[11px]">General</span>
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-xs font-bold text-gray-700 truncate max-w-[140px]">
+                                      {book.whoadded && book.whoadded !== 'none' ? book.whoadded : '—'}
+                                    </span>
+                                    {book.addedByRole && (
+                                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full w-fit border ${
+                                        book.addedByRole === 'superadmin' ? 'bg-purple-50 text-purple-700 border-purple-200/60' :
+                                        book.addedByRole === 'admin' ? 'bg-rose-50 text-rose-600 border-rose-200/60' :
+                                        book.addedByRole === 'subadmin' ? 'bg-blue-50 text-blue-600 border-blue-200/60' :
+                                        'bg-gray-100 text-gray-500 border-gray-200'
+                                      }`}>
+                                        {book.addedByRole}
+                                      </span>
+                                    )}
+                                    {!book.isApproved && (
+                                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full w-fit bg-amber-50 text-amber-600 border border-amber-200/60 animate-pulse">
+                                        Pending
+                                      </span>
                                     )}
                                   </div>
                                 </td>
