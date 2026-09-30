@@ -290,6 +290,40 @@ const Viewbook = () => {
                                 </div>
                             </div>
 
+                            {/* Attribution Badges: Added by & Approved by */}
+                            <div className='flex flex-wrap gap-4 pt-2'>
+                                <div className='bg-gray-900/60 border border-gray-800 rounded-2xl px-4 py-2.5 flex items-center gap-3'>
+                                    <div className='w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 text-xs font-black'>
+                                        👤
+                                    </div>
+                                    <div>
+                                        <p className='text-[9px] font-black text-gray-500 uppercase tracking-widest'>Cataloged By</p>
+                                        <p className='text-xs font-bold text-gray-200 flex items-center gap-1.5'>
+                                            <span>{book.whoadded && book.whoadded !== 'none' ? book.whoadded : 'Librarian Staff'}</span>
+                                            {book.addedByRole && (
+                                                <span className='text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30'>
+                                                    {book.addedByRole}
+                                                </span>
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {book.approvedBy && (
+                                    <div className='bg-emerald-950/20 border border-emerald-800/40 rounded-2xl px-4 py-2.5 flex items-center gap-3'>
+                                        <div className='w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs font-black'>
+                                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                                        </div>
+                                        <div>
+                                            <p className='text-[9px] font-black text-emerald-500 uppercase tracking-widest'>Approved By</p>
+                                            <p className='text-xs font-bold text-emerald-300 flex items-center gap-1.5'>
+                                                <span>{book.approvedBy}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             <div className='pt-6'>
                                 <p className='text-gray-500 text-[10px] font-black uppercase tracking-widest mb-3 italic'>Classified Under</p>
                                 <div className='flex flex-wrap gap-2'>

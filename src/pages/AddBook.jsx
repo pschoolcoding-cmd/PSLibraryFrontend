@@ -7,9 +7,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pslibrarybackend.o
 const API_KEY = import.meta.env.VITE_API_KEY || 'supersecret';
 
 const AddBook = () => {
-    const { isAdmin, reader, isAuthenticated } = useAuth();
+    const { isAdmin, isSubAdmin, canAccessAdminPanel, reader, isAuthenticated } = useAuth();
 
-    if (!isAdmin) {
+    if (!canAccessAdminPanel) {
       return (
         <div className="min-h-screen bg-[#030303] text-white flex flex-col justify-between">
           <Navbar />
@@ -18,10 +18,10 @@ const AddBook = () => {
               <span className="text-2xl">🔒</span>
             </div>
             <h2 className="text-2xl font-black font-[Outfit] uppercase italic mb-2 text-amber-400">
-              Librarian Admin Access Only
+              Staff Access Only
             </h2>
             <p className="text-gray-400 text-sm max-w-md mb-6">
-              The Add Book catalog management page is reserved exclusively for registered Librarian Administrators. Readers may browse, search, and borrow from the public catalog.
+              The Add Book catalog management page is reserved exclusively for registered staff administrators and subadmins. Readers may browse, search, and borrow from the public catalog.
             </p>
             <a
               href="/search"
@@ -371,7 +371,9 @@ const AddBook = () => {
                         description: description,
                         image: imageUrl,
                         borrowed: location || '0',
-                        whoadded: reader?.email || 'admin'
+                        whoadded: reader?.email || reader?.name || 'admin',
+                        addedByRole: reader?.role || 'admin',
+                        isApproved: isSubAdmin ? false : true
                     }),
                 });
 
@@ -390,7 +392,11 @@ const AddBook = () => {
         setLoadingStatus('');
 
         if (successCount > 0) {
-            alert(`Successfully registered ${successCount} ${successCount === 1 ? 'copy' : 'copies'} of "${title}" into the catalog!${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+            if (isSubAdmin) {
+                alert(`Successfully submitted ${successCount} ${successCount === 1 ? 'copy' : 'copies'} of "${title}"! It has been sent to the Admin Pending Approval queue.`);
+            } else {
+                alert(`Successfully registered ${successCount} ${successCount === 1 ? 'copy' : 'copies'} of "${title}" into the catalog!${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+            }
             clean();
         } else {
             alert('Failed to register book copies. Please check backend network connection.');
@@ -400,13 +406,26 @@ const AddBook = () => {
     <div className='min-h-screen w-full bg-[#030712] text-white pt-24 pb-12 px-4 md:px-12 flex items-center justify-center font-[Inter] relative'>
         <Navbar />
         <div className='max-w-4xl w-full bg-gray-900/40 backdrop-blur-2xl p-8 md:p-12 rounded-[3rem] border border-gray-800/50 shadow-2xl'>
+            
+            {isSubAdmin && (
+                <div className="mb-8 p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold shrink-0">
+                        ⏳
+                    </div>
+                    <div>
+                        <p className="font-extrabold uppercase tracking-wider text-xs font-[Outfit]">Subadmin Submission Queue</p>
+                        <p className="text-amber-300/80 text-xs mt-1">Your added book copies will be sent to the Admin Pending Approval queue for review before appearing in the public library catalog.</p>
+                    </div>
+                </div>
+            )}
+
             <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4'>
                 <div>
                     <p className='text-blue-500 text-[10px] font-black uppercase tracking-[0.4em] mb-2 font-[Outfit]'>Administration</p>
                     <h1 className='text-4xl font-black italic tracking-tighter uppercase font-[Outfit]'>New Catalog Entry</h1>
                 </div>
                 <div className='bg-blue-600/10 text-blue-400 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest border border-blue-500/20'>
-                    SECURE ADDITION
+                    {isSubAdmin ? 'SUBADMIN INTAKE' : 'SECURE ADDITION'}
                 </div>
             </div>
 

@@ -14,9 +14,9 @@ const API_KEY = import.meta.env.VITE_API_KEY || 'supersecret';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
-  const { isAdmin, reader } = useAuth();
+  const { isAdmin, isSuperAdmin, isSubAdmin, canAccessAdminPanel, canManageRoles, canApproveBooks, reader } = useAuth();
 
-  // Active Main Tab: 'books' | 'users' | 'sux'
+  // Active Main Tab: 'books' | 'pending' | 'users' | 'admin-stats'
   const [activeTab, setActiveTab] = useState('books');
   const [subFilter, setSubFilter] = useState('all'); // 'all', 'borrowed', 'available' / 'readers', 'admins'
 
@@ -28,6 +28,9 @@ export default function AdminPanel() {
 
   // Data states
   const [books, setBooks] = useState([]);
+  const [pendingBooks, setPendingBooks] = useState([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [adminStatsList, setAdminStatsList] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionMenuId, setActionMenuId] = useState(null);
@@ -62,8 +65,8 @@ export default function AdminPanel() {
     _id: '', name: '', surname: '', email: '', role: 'reader', birthdate: '', studentClass: '', isExternal: false, avatar: '', password: ''
   });
 
-  // Check Admin Authorization
-  if (!isAdmin) {
+  // Check Staff Access Authorization
+  if (!canAccessAdminPanel) {
     return (
       <div className="min-h-screen bg-[#f4f5f8] text-gray-900 flex flex-col justify-between font-[Inter]">
         <Navbar />
@@ -75,13 +78,13 @@ export default function AdminPanel() {
             Restricted Admin Area
           </h2>
           <p className="text-gray-500 text-sm max-w-md mb-6">
-            This management panel is reserved exclusively for library administrators. Please log in with an administrator account to access catalog and user controls.
+            This management panel is reserved exclusively for registered staff administrators and subadmins. Please log in with appropriate administrative credentials.
           </p>
           <button
             onClick={() => navigate('/login')}
             className="bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-xs uppercase tracking-widest px-8 py-4 rounded-2xl shadow-xl shadow-rose-500/20 transition-all cursor-pointer"
           >
-            Authenticate Admin Login
+            Authenticate Staff Login
           </button>
         </div>
       </div>
@@ -108,7 +111,7 @@ export default function AdminPanel() {
       const queryParams = new URLSearchParams({
         page: page,
         limit: 15,
-        all: 'true', // fetch individual copies
+        all: 'true',
         q: searchQuery
       });
       const res = await fetch(`${API_BASE_URL}/books?${queryParams.toString()}`);
@@ -120,6 +123,40 @@ export default function AdminPanel() {
       }
     } catch (err) {
       console.error('Error fetching books:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch Pending Approvals
+  const fetchPendingBooks = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/books?pendingOnly=true&all=true`);
+      if (res.ok) {
+        const result = await res.json();
+        setPendingBooks(result.data || []);
+        setPendingCount(result.total || (result.data ? result.data.length : 0));
+      }
+    } catch (err) {
+      console.error('Error fetching pending books:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch Admin Stats
+  const fetchAdminStats = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/books/admin-stats`);
+      if (res.ok) {
+        const data = await res.json();
+        setAdminStatsList(data.stats || []);
+        setPendingCount(data.totalPending || 0);
+      }
+    } catch (err) {
+      console.error('Error fetching admin stats:', err);
     } finally {
       setLoading(false);
     }
@@ -151,15 +188,83 @@ export default function AdminPanel() {
     }
   };
 
+  // Approve Pending Book Handler
+  const handleApproveBook = async (bookId) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/books/${bookId}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        },
+        body: JSON.stringify({
+          approvedBy: reader?.email || reader?.name || 'Admin'
+        })
+      });
+
+      if (res.ok) {
+        alert('Book entry approved and added to the public catalog!');
+        fetchPendingBooks();
+        fetchStats();
+      } else {
+        const err = await res.json();
+        alert('Failed to approve book: ' + (err.error || 'Error'));
+      }
+    } catch (err) {
+      alert('Network error while approving book entry');
+    }
+  };
+
+  // Change User Role Handler (Super Admin only)
+  const handleChangeUserRole = async (userId, targetRole, currentRole) => {
+    if (!isSuperAdmin) {
+      alert('Access Denied: Only Super Admins can alter user roles.');
+      return;
+    }
+    if (currentRole === 'superadmin' && targetRole !== 'superadmin') {
+      if (!window.confirm('Warning: You are demoting a Super Admin. Continue?')) return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/readers/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-requester-role': 'superadmin'
+        },
+        body: JSON.stringify({
+          role: targetRole,
+          requesterRole: 'superadmin'
+        })
+      });
+
+      if (res.ok) {
+        alert(`User role updated to ${targetRole.toUpperCase()} successfully!`);
+        if (activeTab === 'admin-stats') fetchAdminStats();
+        if (activeTab === 'users') fetchUsers();
+      } else {
+        const data = await res.json();
+        alert('Role change failed: ' + (data.message || 'Error'));
+      }
+    } catch (err) {
+      alert('Error updating user role');
+    }
+  };
+
   useEffect(() => {
     fetchStats();
+    fetchPendingBooks();
   }, []);
 
   useEffect(() => {
     if (activeTab === 'books') {
       fetchBooks();
+    } else if (activeTab === 'pending') {
+      fetchPendingBooks();
     } else if (activeTab === 'users') {
       fetchUsers();
+    } else if (activeTab === 'admin-stats') {
+      fetchAdminStats();
     }
   }, [activeTab, page, searchQuery, subFilter]);
 
@@ -485,7 +590,7 @@ export default function AdminPanel() {
                 </div>
                 <div>
                   <h1 className="font-black text-xl tracking-tight text-gray-900 font-[Outfit] italic">
-                    bringova
+                    PS Library
                   </h1>
                   <p className="text-[10px] uppercase font-bold tracking-widest text-rose-500">
                     Admin Portal
@@ -515,6 +620,29 @@ export default function AdminPanel() {
                 </button>
 
                 <button
+                  onClick={() => { setActiveTab('pending'); setPage(1); }}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'pending'
+                      ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500 group-hover:text-amber-600" />
+                    <span>Pending Approvals</span>
+                  </div>
+                  {pendingCount > 0 ? (
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500 text-white animate-pulse">
+                      {pendingCount} NEW
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200/60 text-gray-500">
+                      0
+                    </span>
+                  )}
+                </button>
+
+                <button
                   onClick={() => { setActiveTab('users'); setPage(1); }}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                     activeTab === 'users'
@@ -530,6 +658,23 @@ export default function AdminPanel() {
                     activeTab === 'users' ? 'bg-white/20 text-white' : 'bg-gray-200/60 text-gray-600'
                   }`}>
                     {stats.totalReaders}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('admin-stats'); setPage(1); }}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'admin-stats'
+                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Shield className="w-4 h-4 text-purple-500" />
+                    <span>Admins & Statistics</span>
+                  </div>
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                    STATS
                   </span>
                 </button>
 
@@ -603,7 +748,7 @@ export default function AdminPanel() {
                     </div>
                   </div>
 
-                  {/* Admin User Profile */}
+                   {/* Admin User Profile */}
                   <div className="flex items-center gap-3 bg-[#f6f7fb] p-1.5 pr-4 rounded-2xl border border-gray-100">
                     <img
                       src={reader?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(reader?.name || 'Admin')}`}
@@ -612,7 +757,9 @@ export default function AdminPanel() {
                     />
                     <div className="text-left leading-tight">
                       <p className="text-xs font-black text-gray-900 font-[Outfit]">{reader?.name || 'Admin User'}</p>
-                      <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Super Administrator</p>
+                      <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">
+                        {reader?.role === 'superadmin' ? 'Super Admin' : reader?.role === 'admin' ? 'Admin' : 'Subadmin'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -623,13 +770,16 @@ export default function AdminPanel() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl font-black tracking-tight text-gray-900 font-[Outfit]">
-                    {activeTab === 'books' ? 'Book Management Directory' : 'User & Reader Directory'}
+                    {activeTab === 'books' && 'Book Management Directory'}
+                    {activeTab === 'pending' && 'Pending Approval Queue'}
+                    {activeTab === 'users' && 'User & Reader Directory'}
+                    {activeTab === 'admin-stats' && 'Admins & Contribution Statistics'}
                   </h2>
                   <p className="text-xs text-gray-400 font-medium mt-0.5">
-                    {activeTab === 'books' 
-                      ? 'Browse, edit metadata, update cover art, or generate new SUX copies.'
-                      : 'View system users, change roles, edit accounts, or reset credentials.'
-                    }
+                    {activeTab === 'books' && 'Browse, edit metadata, update cover art, or generate new SUX copies.'}
+                    {activeTab === 'pending' && 'Review and approve subadmin book submissions before they appear in the public catalog.'}
+                    {activeTab === 'users' && 'View system users, change roles, edit accounts, or reset credentials.'}
+                    {activeTab === 'admin-stats' && 'Track contribution leaderboard, review staff performance, and manage roles.'}
                   </p>
                 </div>
 
@@ -660,7 +810,149 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* DATA TABLE (BRINGOVA STYLED LIST) */}
+              {/* PENDING APPROVALS TAB */}
+              {activeTab === 'pending' && (
+                <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                  {loading ? (
+                    <div className="py-16 text-center text-gray-400 flex flex-col items-center gap-3">
+                      <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+                      <span className="font-bold text-xs">Loading pending submissions...</span>
+                    </div>
+                  ) : pendingBooks.length === 0 ? (
+                    <div className="py-20 text-center flex flex-col items-center gap-3">
+                      <div className="w-16 h-16 rounded-3xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-2xl mb-2">✅</div>
+                      <p className="font-black text-gray-500 text-sm">All caught up!</p>
+                      <p className="text-gray-400 text-xs">No pending book submissions awaiting approval.</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-100">
+                      {pendingBooks.map((book) => (
+                        <div key={book._id} className="flex items-start gap-5 p-5 hover:bg-amber-50/50 transition-colors">
+                          <img
+                            src={book.image || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200'}
+                            alt={book.name}
+                            className="w-12 h-16 object-cover rounded-xl border border-gray-200 shadow-sm shrink-0"
+                            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200'; }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-4 flex-wrap">
+                              <div>
+                                <p className="font-black text-gray-900 text-sm leading-tight">{book.name}</p>
+                                <p className="text-xs text-gray-500 mt-0.5">by <span className="font-bold">{book.author || 'Unknown Author'}</span></p>
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                  <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{book.bid}</span>
+                                  <span className="text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-full">
+                                    Submitted by: {book.whoadded || 'Unknown'}
+                                  </span>
+                                  {book.addedByRole && (
+                                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300/60">
+                                      {book.addedByRole}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  onClick={() => handleApproveBook(book._id)}
+                                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteBook(book._id)}
+                                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs px-3 py-2 rounded-xl border border-rose-200/60 transition-all flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  Reject
+                                </button>
+                              </div>
+                            </div>
+                            {book.description && (
+                              <p className="text-[11px] text-gray-400 mt-2 line-clamp-2">{book.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ADMIN STATS TAB */}
+              {activeTab === 'admin-stats' && (
+                <div className="space-y-4">
+                  {loading ? (
+                    <div className="bg-white rounded-3xl border border-gray-100 py-16 text-center flex flex-col items-center gap-3">
+                      <div className="w-8 h-8 border-2 border-purple-400/20 border-t-purple-500 rounded-full animate-spin" />
+                      <span className="font-bold text-xs text-gray-400">Loading statistics...</span>
+                    </div>
+                  ) : adminStatsList.length === 0 ? (
+                    <div className="bg-white rounded-3xl border border-gray-100 py-20 text-center flex flex-col items-center gap-3">
+                      <p className="font-black text-gray-400 text-sm">No contribution data available yet.</p>
+                    </div>
+                  ) : (
+                    adminStatsList.map((entry, idx) => {
+                      const medals = ['🥇', '🥈', '🥉'];
+                      const roleColors = {
+                        superadmin: 'bg-purple-100 text-purple-700 border-purple-300/60',
+                        admin: 'bg-rose-100 text-rose-700 border-rose-300/60',
+                        subadmin: 'bg-blue-100 text-blue-700 border-blue-300/60',
+                        reader: 'bg-gray-100 text-gray-600 border-gray-200',
+                      };
+                      return (
+                        <div key={entry._id} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex items-center gap-5">
+                          <div className="text-3xl w-10 text-center shrink-0">{medals[idx] || `#${idx + 1}`}</div>
+                          <img
+                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(entry.name || entry._id)}`}
+                            alt={entry.name}
+                            className="w-11 h-11 rounded-2xl border border-gray-200 shadow-sm shrink-0 bg-gray-50"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-black text-gray-900 text-sm">{entry.name || entry._id}</p>
+                              <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${roleColors[entry.role] || roleColors.reader}`}>
+                                {entry.role}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-0.5">{entry._id}</p>
+                            <div className="flex items-center gap-4 mt-2 flex-wrap text-xs">
+                              <span className="font-bold text-gray-700">
+                                <span className="text-emerald-600 font-black">{entry.approvedCount}</span> approved
+                              </span>
+                              <span className="text-gray-300">|</span>
+                              <span className="font-bold text-gray-700">
+                                <span className="text-amber-500 font-black">{entry.pendingCount}</span> pending
+                              </span>
+                              <span className="text-gray-300">|</span>
+                              <span className="font-bold text-gray-700">
+                                <span className="text-blue-500 font-black">{entry.addedCount}</span> total submitted
+                              </span>
+                            </div>
+                          </div>
+                          {isSuperAdmin && entry.role !== 'superadmin' && (
+                            <div className="shrink-0">
+                              <select
+                                defaultValue={entry.role}
+                                onChange={(e) => handleChangeUserRole(entry._id, e.target.value, entry.role)}
+                                className="text-xs font-bold border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 hover:border-purple-400 focus:outline-none focus:border-purple-500 cursor-pointer transition-colors"
+                              >
+                                <option value="reader">Reader</option>
+                                <option value="subadmin">Subadmin</option>
+                                <option value="admin">Admin</option>
+                                <option value="superadmin">Super Admin</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+
+              {/* BOOKS & USERS TABLE */}
+              {(activeTab === 'books' || activeTab === 'users') && (
               <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
@@ -865,14 +1157,23 @@ export default function AdminPanel() {
 
                               {/* Role Badge */}
                               <td className="py-4 px-6">
-                                {u.role === 'admin' ? (
+                                {u.role === 'superadmin' ? (
+                                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200/60">
+                                    <Shield className="w-3 h-3 text-purple-500" />
+                                    Super Admin
+                                  </span>
+                                ) : u.role === 'admin' ? (
                                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-200/60">
                                     <Shield className="w-3 h-3 text-rose-500" />
-                                    Librarian Admin
+                                    Admin
+                                  </span>
+                                ) : u.role === 'subadmin' ? (
+                                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200/60">
+                                    Subadmin
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200/60">
-                                    Reader / Student
+                                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200">
+                                    Reader
                                   </span>
                                 )}
                               </td>
@@ -934,6 +1235,7 @@ export default function AdminPanel() {
                   </table>
                 </div>
               </div>
+              )}
 
             </div>
 

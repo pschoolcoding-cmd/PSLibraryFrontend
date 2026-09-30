@@ -278,8 +278,15 @@ export const AuthProvider = ({ children }) => {
         borrowBook,
         returnBook,
         toggleFavorite,
-        createStudentAccount,
-        isAdmin: reader?.role === 'admin',
+        isSuperAdmin: reader?.role === 'superadmin',
+        isAdmin: reader?.role === 'admin' || reader?.role === 'superadmin',
+        isSubAdmin: reader?.role === 'subadmin',
+        isStaff: ['superadmin', 'admin', 'subadmin'].includes(reader?.role),
+        canAccessAdminPanel: ['superadmin', 'admin', 'subadmin'].includes(reader?.role),
+        canManageRoles: reader?.role === 'superadmin',
+        canApproveBooks: ['superadmin', 'admin'].includes(reader?.role),
+        canAddBooks: ['superadmin', 'admin', 'subadmin'].includes(reader?.role),
+        userRole: reader?.role || 'reader',
         isAuthenticated: !!reader
       }}
     >

@@ -6,10 +6,17 @@ import { BookOpen, Search, ScanLine, PlusCircle, User, LogOut, LayoutDashboard, 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { reader, logout, isAuthenticated, isAdmin } = useAuth();
+  const { reader, logout, isAuthenticated, isAdmin, isSuperAdmin, isSubAdmin, canAccessAdminPanel, canAddBooks } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
+
+  const getRoleBadge = (role) => {
+    if (role === 'superadmin') return <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">Super Admin</span>;
+    if (role === 'admin') return <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">Admin</span>;
+    if (role === 'subadmin') return <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/40">Subadmin</span>;
+    return <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">Reader</span>;
+  };
 
   return (
     <nav className="fixed top-0 left-0 w-full z-[100] bg-black/70 backdrop-blur-xl border-b border-gray-800/80 px-4 sm:px-8 py-3.5 transition-all">
@@ -54,7 +61,7 @@ export default function Navbar() {
             Scanner
           </button>
 
-          {isAdmin && (
+          {canAccessAdminPanel && (
             <>
               <button
                 onClick={() => navigate('/admin')}
@@ -68,17 +75,19 @@ export default function Navbar() {
                 Admin Panel
               </button>
 
-              <button
-                onClick={() => navigate('/admin/genres')}
-                className={`text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
-                  isActive('/admin/genres') || isActive('/genres')
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-                AI Genres
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => navigate('/admin/genres')}
+                  className={`text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+                    isActive('/admin/genres') || isActive('/genres')
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+                  AI Genres
+                </button>
+              )}
 
               <button
                 onClick={() => navigate('/add')}
@@ -124,13 +133,16 @@ export default function Navbar() {
                     className="fixed inset-0 z-40" 
                     onClick={() => setDropdownOpen(false)} 
                   />
-                  <div className="absolute right-0 mt-2 w-56 bg-[#0f0f10] border border-gray-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="px-3 py-2 border-b border-gray-800/80 mb-1">
-                      <p className="text-xs font-bold text-white truncate font-[Outfit]">{reader?.name}</p>
-                      <p className="text-[11px] text-gray-400 truncate">{reader?.email}</p>
+                  <div className="absolute right-0 mt-2 w-60 bg-[#0f0f10] border border-gray-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-3 py-2 border-b border-gray-800/80 mb-1 flex items-center justify-between">
+                      <div className="overflow-hidden">
+                        <p className="text-xs font-bold text-white truncate font-[Outfit]">{reader?.name}</p>
+                        <p className="text-[10px] text-gray-400 truncate">{reader?.email}</p>
+                      </div>
+                      {getRoleBadge(reader?.role)}
                     </div>
 
-                    {isAdmin && (
+                    {canAccessAdminPanel && (
                       <button
                         onClick={() => {
                           setDropdownOpen(false);
