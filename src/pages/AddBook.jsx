@@ -55,6 +55,84 @@ const AddBook = () => {
     const [tags, setTags] = useState([]);
     const [masterGenres, setMasterGenres] = useState([]);
 
+    // Safe Draft Save State & Key
+    const DRAFT_KEY = 'ps_library_add_book_draft';
+    const [hasDraft, setHasDraft] = useState(false);
+
+    // Check if a saved draft exists on mount
+    React.useEffect(() => {
+        try {
+            const saved = localStorage.getItem(DRAFT_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed && (parsed.title || parsed.bookIdp1 || parsed.author || (parsed.suxList && parsed.suxList.length > 0))) {
+                    setHasDraft(true);
+                }
+            }
+        } catch (e) {
+            console.error('Error checking saved draft:', e);
+        }
+    }, []);
+
+    // Auto-save form fields to localStorage as user edits
+    React.useEffect(() => {
+        const hasContent = title.trim() || bookIdp1.trim() || author.trim() || description.trim() || (tags && tags.length > 0) || (suxList && suxList.length > 0) || image;
+        if (hasContent) {
+            const draftObj = {
+                title,
+                bookIdp1,
+                suxList,
+                suxInput,
+                author,
+                description,
+                tags,
+                image,
+                uploadedImageUrl,
+                location
+            };
+            try {
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(draftObj));
+                setHasDraft(true);
+            } catch (e) {
+                console.error('Error saving draft:', e);
+            }
+        }
+    }, [title, bookIdp1, suxList, suxInput, author, description, tags, image, uploadedImageUrl, location]);
+
+    const restoreDraft = () => {
+        try {
+            const saved = localStorage.getItem(DRAFT_KEY);
+            if (saved) {
+                const draft = JSON.parse(saved);
+                if (draft.title !== undefined) setTitle(draft.title);
+                if (draft.bookIdp1 !== undefined) setBookIdp1(draft.bookIdp1);
+                if (draft.suxList !== undefined) setSuxList(draft.suxList);
+                if (draft.suxInput !== undefined) setSuxInput(draft.suxInput);
+                if (draft.author !== undefined) setAuthor(draft.author);
+                if (draft.description !== undefined) setDescription(draft.description);
+                if (draft.tags !== undefined) setTags(draft.tags);
+                if (draft.image !== undefined) setImage(draft.image);
+                if (draft.uploadedImageUrl !== undefined) setUploadedImageUrl(draft.uploadedImageUrl);
+                if (draft.location !== undefined) setLocation(draft.location);
+                alert('Draft book information restored successfully!');
+            }
+        } catch (e) {
+            alert('Could not restore saved draft.');
+        }
+    };
+
+    const discardDraft = () => {
+        if (window.confirm('Are you sure you want to permanently delete your saved draft? This action cannot be undone.')) {
+            try {
+                localStorage.removeItem(DRAFT_KEY);
+                setHasDraft(false);
+                alert('Saved draft has been deleted.');
+            } catch (e) {
+                console.error('Error discarding draft:', e);
+            }
+        }
+    };
+
     // Fetch master canonical genres for admin quick-selection
     React.useEffect(() => {
         fetch(`${API_BASE_URL}/books/genre-organizer/status`)
@@ -211,6 +289,12 @@ const AddBook = () => {
     };
 
     const clean = () => {
+        try {
+            localStorage.removeItem(DRAFT_KEY);
+            setHasDraft(false);
+        } catch (e) {
+            console.error('Error clearing draft:', e);
+        }
         setTags([]);
         setTitle('');
         setAuthor('');
@@ -415,6 +499,41 @@ const AddBook = () => {
                     <div>
                         <p className="font-extrabold uppercase tracking-wider text-xs font-[Outfit]">Subadmin Submission Queue</p>
                         <p className="text-amber-300/80 text-xs mt-1">Your added book copies will be sent to the Admin Pending Approval queue for review before appearing in the public library catalog.</p>
+                    </div>
+                </div>
+            )}
+
+            {hasDraft && (
+                <div className="mb-8 p-5 rounded-3xl bg-purple-500/10 border border-purple-500/30 text-purple-200 flex items-center justify-between gap-4 flex-wrap shadow-lg shadow-purple-900/10">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold text-lg shrink-0">
+                            💾
+                        </div>
+                        <div className="min-w-0">
+                            <p className="font-extrabold uppercase tracking-wider text-xs font-[Outfit] text-purple-300">
+                                Unsaved Draft Auto-Saved
+                            </p>
+                            <p className="text-purple-300/80 text-xs mt-0.5 truncate">
+                                Unsubmitted book data from your previous session is safely saved. Click to restore or discard.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={restoreDraft}
+                            className="bg-purple-600 hover:bg-purple-500 text-white font-black text-xs px-4 py-2.5 rounded-2xl shadow-lg shadow-purple-600/30 transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                            ⚡ Restore Saved Draft
+                        </button>
+                        <button
+                            type="button"
+                            onClick={discardDraft}
+                            title="Discard saved draft"
+                            className="bg-purple-950/80 hover:bg-rose-600/30 text-purple-300 hover:text-rose-300 font-bold text-xs px-3 py-2.5 rounded-2xl border border-purple-500/30 hover:border-rose-500/40 transition-all flex items-center justify-center cursor-pointer"
+                        >
+                            ✕
+                        </button>
                     </div>
                 </div>
             )}

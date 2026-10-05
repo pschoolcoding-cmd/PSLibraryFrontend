@@ -132,11 +132,20 @@ export default function AdminPanel() {
   const fetchPendingBooks = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/books?pendingOnly=true&all=true`);
+      const queryParams = new URLSearchParams({
+        page: page,
+        limit: 15,
+        pendingOnly: 'true',
+        all: 'true',
+        q: searchQuery
+      });
+      const res = await fetch(`${API_BASE_URL}/books?${queryParams.toString()}`);
       if (res.ok) {
         const result = await res.json();
         setPendingBooks(result.data || []);
         setPendingCount(result.total || (result.data ? result.data.length : 0));
+        setTotalPages(result.pages || 1);
+        setTotalCount(result.total || 0);
       }
     } catch (err) {
       console.error('Error fetching pending books:', err);
@@ -160,6 +169,26 @@ export default function AdminPanel() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Filtered Admin Stats based on search query
+  const filteredAdminStats = adminStatsList.filter((entry) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    return (
+      (entry.name && entry.name.toLowerCase().includes(q)) ||
+      (entry.surname && entry.surname.toLowerCase().includes(q)) ||
+      (entry.email && entry.email.toLowerCase().includes(q)) ||
+      (entry.role && entry.role.toLowerCase().includes(q)) ||
+      (entry.studentClass && entry.studentClass.toLowerCase().includes(q))
+    );
+  });
+
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    setPage(1);
+    setTotalPages(1);
+    setTotalCount(0);
   };
 
   // Fetch Users / Readers
@@ -267,6 +296,22 @@ export default function AdminPanel() {
       fetchAdminStats();
     }
   }, [activeTab, page, searchQuery, subFilter]);
+
+  // Sync totalPages and totalCount for admin-stats tab
+  useEffect(() => {
+    if (activeTab === 'admin-stats') {
+      const total = filteredAdminStats.length;
+      setTotalPages(Math.max(1, Math.ceil(total / 15)));
+      setTotalCount(total);
+    }
+  }, [activeTab, adminStatsList, searchQuery]);
+
+  // Clamp page to valid range if page exceeds totalPages
+  useEffect(() => {
+    if (totalPages > 0 && page > totalPages) {
+      setPage(1);
+    }
+  }, [totalPages, page]);
 
   // Click outside listener for 3-dots action popup menu
   useEffect(() => {
@@ -601,7 +646,7 @@ export default function AdminPanel() {
               {/* Navigation Links */}
               <nav className="space-y-1.5">
                 <button
-                  onClick={() => { setActiveTab('books'); setPage(1); }}
+                  onClick={() => handleTabChange('books')}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                     activeTab === 'books'
                       ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
@@ -620,7 +665,7 @@ export default function AdminPanel() {
                 </button>
 
                 <button
-                  onClick={() => { setActiveTab('pending'); setPage(1); }}
+                  onClick={() => handleTabChange('pending')}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                     activeTab === 'pending'
                       ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
@@ -643,7 +688,7 @@ export default function AdminPanel() {
                 </button>
 
                 <button
-                  onClick={() => { setActiveTab('users'); setPage(1); }}
+                  onClick={() => handleTabChange('users')}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                     activeTab === 'users'
                       ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
@@ -662,7 +707,7 @@ export default function AdminPanel() {
                 </button>
 
                 <button
-                  onClick={() => { setActiveTab('admin-stats'); setPage(1); }}
+                  onClick={() => handleTabChange('admin-stats')}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                     activeTab === 'admin-stats'
                       ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
@@ -882,17 +927,30 @@ export default function AdminPanel() {
               {/* ADMIN STATS TAB */}
               {activeTab === 'admin-stats' && (
                 <div className="space-y-4">
+                  {/* Fair Ranking Notice */}
+                  <div className="bg-purple-50 border border-purple-200/70 rounded-2xl p-4 flex items-center gap-3 text-purple-900 text-xs shadow-sm">
+                    <Sparkles className="w-5 h-5 text-purple-600 shrink-0" />
+                    <div>
+                      <p className="font-black text-purple-950 font-[Outfit] uppercase tracking-wider text-[11px]">
+                        Fair Leaderboard Policy
+                      </p>
+                      <p className="text-purple-700 text-[11px] mt-0.5">
+                        Admin rankings are determined by <strong>distinct book types added (same ISBN = 1 type)</strong>. Submitting 5 copies in one form counts as 1 book type towards your ranking position while displaying total physical copies.
+                      </p>
+                    </div>
+                  </div>
+
                   {loading ? (
                     <div className="bg-white rounded-3xl border border-gray-100 py-16 text-center flex flex-col items-center gap-3">
                       <div className="w-8 h-8 border-2 border-purple-400/20 border-t-purple-500 rounded-full animate-spin" />
                       <span className="font-bold text-xs text-gray-400">Loading statistics...</span>
                     </div>
-                  ) : adminStatsList.length === 0 ? (
+                  ) : filteredAdminStats.length === 0 ? (
                     <div className="bg-white rounded-3xl border border-gray-100 py-20 text-center flex flex-col items-center gap-3">
-                      <p className="font-black text-gray-400 text-sm">No contribution data available yet.</p>
+                      <p className="font-black text-gray-400 text-sm">No contribution data available matching your search.</p>
                     </div>
                   ) : (
-                    adminStatsList.map((entry, idx) => {
+                    filteredAdminStats.map((entry, idx) => {
                       const medals = ['🥇', '🥈', '🥉'];
                       const roleColors = {
                         superadmin: 'bg-purple-100 text-purple-700 border-purple-300/60',
@@ -902,31 +960,35 @@ export default function AdminPanel() {
                       };
                       return (
                         <div key={entry._id} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex items-center gap-5">
-                          <div className="text-3xl w-10 text-center shrink-0">{medals[idx] || `#${idx + 1}`}</div>
+                          <div className="text-3xl w-10 text-center shrink-0 font-black">{medals[idx] || `#${idx + 1}`}</div>
                           <img
-                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(entry.name || entry._id)}`}
+                            src={entry.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(entry.name || entry._id)}`}
                             alt={entry.name}
-                            className="w-11 h-11 rounded-2xl border border-gray-200 shadow-sm shrink-0 bg-gray-50"
+                            className="w-11 h-11 rounded-2xl border border-gray-200 shadow-sm shrink-0 bg-gray-50 object-cover"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-black text-gray-900 text-sm">{entry.name || entry._id}</p>
+                              <p className="font-black text-gray-900 text-sm">{entry.name} {entry.surname || ''}</p>
                               <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${roleColors[entry.role] || roleColors.reader}`}>
                                 {entry.role}
                               </span>
                             </div>
-                            <p className="text-[11px] text-gray-400 mt-0.5">{entry._id}</p>
-                            <div className="flex items-center gap-4 mt-2 flex-wrap text-xs">
-                              <span className="font-bold text-gray-700">
-                                <span className="text-emerald-600 font-black">{entry.approvedCount}</span> approved
+                            <p className="text-[11px] text-gray-400 mt-0.5">{entry.email}</p>
+                            <div className="flex items-center gap-3 mt-2.5 flex-wrap text-xs">
+                              <span className="font-black text-purple-700 bg-purple-50 px-3 py-1 rounded-xl border border-purple-200/60 flex items-center gap-1.5">
+                                <BookOpen className="w-3.5 h-3.5 text-purple-600" />
+                                <span className="font-black text-purple-900 text-sm">{entry.uniqueTypesCount || 0}</span> Book Types Added
+                              </span>
+                              <span className="text-gray-500 font-semibold text-[11px]">
+                                ({entry.addedCount || 0} total physical copies)
                               </span>
                               <span className="text-gray-300">|</span>
                               <span className="font-bold text-gray-700">
-                                <span className="text-amber-500 font-black">{entry.pendingCount}</span> pending
+                                <span className="text-emerald-600 font-black">{entry.approvedCount || 0}</span> approved
                               </span>
                               <span className="text-gray-300">|</span>
                               <span className="font-bold text-gray-700">
-                                <span className="text-blue-500 font-black">{entry.addedCount}</span> total submitted
+                                <span className="text-amber-500 font-black">{entry.pendingCount || 0}</span> pending
                               </span>
                             </div>
                           </div>
