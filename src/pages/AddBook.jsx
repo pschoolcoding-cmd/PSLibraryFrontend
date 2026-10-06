@@ -59,7 +59,11 @@ const AddBook = () => {
     const DRAFT_KEY = 'ps_library_add_book_draft';
     const [hasDraft, setHasDraft] = useState(false);
 
-    // Check if a saved draft exists on mount
+    // ISBN existence check state
+    const [isbnCheckResult, setIsbnCheckResult] = useState(null);
+    const [isbnChecking, setIsbnChecking] = useState(false);
+
+    // Check if a saved draft exists on mount ONLY (shows banner only on reload)
     React.useEffect(() => {
         try {
             const saved = localStorage.getItem(DRAFT_KEY);
@@ -74,7 +78,7 @@ const AddBook = () => {
         }
     }, []);
 
-    // Auto-save form fields to localStorage as user edits
+    // Auto-save form fields to localStorage silently as user edits
     React.useEffect(() => {
         const hasContent = title.trim() || bookIdp1.trim() || author.trim() || description.trim() || (tags && tags.length > 0) || (suxList && suxList.length > 0) || image;
         if (hasContent) {
@@ -92,7 +96,7 @@ const AddBook = () => {
             };
             try {
                 localStorage.setItem(DRAFT_KEY, JSON.stringify(draftObj));
-                setHasDraft(true);
+                // Note: Do NOT call setHasDraft(true) here so pop-up doesn't appear live while editing
             } catch (e) {
                 console.error('Error saving draft:', e);
             }
@@ -105,7 +109,10 @@ const AddBook = () => {
             if (saved) {
                 const draft = JSON.parse(saved);
                 if (draft.title !== undefined) setTitle(draft.title);
-                if (draft.bookIdp1 !== undefined) setBookIdp1(draft.bookIdp1);
+                if (draft.bookIdp1 !== undefined) {
+                    setBookIdp1(draft.bookIdp1);
+                    checkIsbnStatus(draft.bookIdp1);
+                }
                 if (draft.suxList !== undefined) setSuxList(draft.suxList);
                 if (draft.suxInput !== undefined) setSuxInput(draft.suxInput);
                 if (draft.author !== undefined) setAuthor(draft.author);
@@ -129,6 +136,52 @@ const AddBook = () => {
                 alert('Saved draft has been deleted.');
             } catch (e) {
                 console.error('Error discarding draft:', e);
+            }
+        }
+    };
+
+    // Check ISBN existence in catalog on blur or scan
+    const checkIsbnStatus = async (val) => {
+        const targetIsbn = val !== undefined ? val : bookIdp1;
+        if (!targetIsbn || targetIsbn.trim().length < 3) {
+            setIsbnCheckResult(null);
+            return;
+        }
+        setIsbnChecking(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/books/check-isbn/${encodeURIComponent(targetIsbn.trim())}`);
+            if (res.ok) {
+                const data = await res.json();
+                setIsbnCheckResult(data);
+            } else {
+                setIsbnCheckResult(null);
+            }
+        } catch (err) {
+            console.error('Error checking ISBN existence:', err);
+            setIsbnCheckResult(null);
+        } finally {
+            setIsbnChecking(false);
+        }
+    };
+
+    // Autofill metadata from existing book record if found
+    const autofillExistingBook = (existingBook) => {
+        if (!existingBook) return;
+        if (existingBook.name && !title) setTitle(existingBook.name);
+        if (existingBook.author && !author) setAuthor(existingBook.author);
+        if (existingBook.description && !description) setDescription(existingBook.description);
+        if (existingBook.image && !image) {
+            setImage(existingBook.image);
+            setUploadedImageUrl(existingBook.image);
+            setImageStatus('done');
+        }
+        if (existingBook.genre && (!tags || tags.length === 0)) {
+            if (Array.isArray(existingBook.genre)) {
+                setTags(existingBook.genre);
+            } else if (typeof existingBook.genre === 'object') {
+                setTags(Object.values(existingBook.genre).filter(Boolean));
+            } else if (typeof existingBook.genre === 'string') {
+                setTags(existingBook.genre.split(',').map(s => s.trim()).filter(Boolean));
             }
         }
     };
@@ -176,6 +229,7 @@ const AddBook = () => {
                     const isbn = decodedText.replace(/[^0-9]/g, '');
                     if (isbn.length === 13 || isbn.length === 10) {
                         setBookIdp1(isbn);
+                        checkIsbnStatus(isbn);
                         stopScanner();
                     }
                 },
@@ -308,6 +362,8 @@ const AddBook = () => {
         setImageStatus('');
         setLocation('0');
         setLoadingStatus('');
+        setIsbnCheckResult(null);
+        setIsbnChecking(false);
     };
 
     const uploadToImgBB = async (base64Image) => {
@@ -489,6 +545,52 @@ const AddBook = () => {
   return (
     <div className='min-h-screen w-full bg-[#030712] text-white pt-24 pb-12 px-4 md:px-12 flex items-center justify-center font-[Inter] relative'>
         <Navbar />
+
+        {/* Right Floating Save Draft Notification Toast */}
+        {hasDraft && (
+            <div className="fixed top-24 right-4 sm:right-8 z-50 max-w-sm w-full bg-gray-900/95 backdrop-blur-2xl border border-purple-500/40 p-4.5 rounded-3xl shadow-2xl text-white flex flex-col gap-3 transition-all animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold text-lg shrink-0">
+                            💾
+                        </div>
+                        <div>
+                            <p className="font-extrabold text-xs uppercase tracking-wider font-[Outfit] text-purple-300">
+                                Unsaved Draft Found
+                            </p>
+                            <p className="text-[11px] text-gray-300 mt-0.5 leading-snug">
+                                You have unsubmitted book data from your previous session.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setHasDraft(false)}
+                        className="text-gray-400 hover:text-white text-sm p-1 cursor-pointer"
+                        title="Dismiss notification"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div className="flex items-center gap-2 pt-1 border-t border-purple-500/20">
+                    <button
+                        type="button"
+                        onClick={() => { restoreDraft(); setHasDraft(false); }}
+                        className="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs py-2 px-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                        ⚡ Restore Saved Draft
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => { discardDraft(); }}
+                        className="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs py-2 px-3 rounded-xl border border-rose-500/30 transition-all flex items-center justify-center cursor-pointer"
+                    >
+                        🗑️ Delete
+                    </button>
+                </div>
+            </div>
+        )}
+
         <div className='max-w-4xl w-full bg-gray-900/40 backdrop-blur-2xl p-8 md:p-12 rounded-[3rem] border border-gray-800/50 shadow-2xl'>
             
             {isSubAdmin && (
@@ -499,41 +601,6 @@ const AddBook = () => {
                     <div>
                         <p className="font-extrabold uppercase tracking-wider text-xs font-[Outfit]">Subadmin Submission Queue</p>
                         <p className="text-amber-300/80 text-xs mt-1">Your added book copies will be sent to the Admin Pending Approval queue for review before appearing in the public library catalog.</p>
-                    </div>
-                </div>
-            )}
-
-            {hasDraft && (
-                <div className="mb-8 p-5 rounded-3xl bg-purple-500/10 border border-purple-500/30 text-purple-200 flex items-center justify-between gap-4 flex-wrap shadow-lg shadow-purple-900/10">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold text-lg shrink-0">
-                            💾
-                        </div>
-                        <div className="min-w-0">
-                            <p className="font-extrabold uppercase tracking-wider text-xs font-[Outfit] text-purple-300">
-                                Unsaved Draft Auto-Saved
-                            </p>
-                            <p className="text-purple-300/80 text-xs mt-0.5 truncate">
-                                Unsubmitted book data from your previous session is safely saved. Click to restore or discard.
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={restoreDraft}
-                            className="bg-purple-600 hover:bg-purple-500 text-white font-black text-xs px-4 py-2.5 rounded-2xl shadow-lg shadow-purple-600/30 transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                            ⚡ Restore Saved Draft
-                        </button>
-                        <button
-                            type="button"
-                            onClick={discardDraft}
-                            title="Discard saved draft"
-                            className="bg-purple-950/80 hover:bg-rose-600/30 text-purple-300 hover:text-rose-300 font-bold text-xs px-3 py-2.5 rounded-2xl border border-purple-500/30 hover:border-rose-500/40 transition-all flex items-center justify-center cursor-pointer"
-                        >
-                            ✕
-                        </button>
                     </div>
                 </div>
             )}
@@ -622,9 +689,48 @@ const AddBook = () => {
                                     placeholder="e.g. 9780131103627" 
                                     className='p-3 bg-transparent outline-none w-full font-mono text-sm tracking-widest border-none text-white placeholder:text-gray-700' 
                                     value={bookIdp1} 
-                                    onChange={(e) => setBookIdp1(e.target.value)} 
+                                    onChange={(e) => setBookIdp1(e.target.value)}
+                                    onBlur={() => checkIsbnStatus()}
                                 />
                             </div>
+
+                            {/* ISBN Existence Status Indicator */}
+                            {isbnChecking && (
+                                <div className="flex items-center gap-2 text-xs text-blue-400 font-medium px-1 py-1">
+                                    <div className="w-3.5 h-3.5 border-2 border-blue-400/20 border-t-blue-400 rounded-full animate-spin"></div>
+                                    Checking catalog for existing ISBN...
+                                </div>
+                            )}
+
+                            {isbnCheckResult && !isbnChecking && (
+                                isbnCheckResult.exists ? (
+                                    <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex flex-col gap-2 shadow-lg">
+                                        <div className="flex items-start gap-2.5">
+                                            <span className="text-base">⚠️</span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-extrabold text-xs font-[Outfit] uppercase tracking-wider text-amber-400">
+                                                    Book Already Registered ({isbnCheckResult.count} {isbnCheckResult.count === 1 ? 'copy' : 'copies'} in catalog)
+                                                </p>
+                                                <p className="text-xs text-amber-200/90 mt-0.5 font-medium truncate">
+                                                    "{isbnCheckResult.book?.name}" {isbnCheckResult.book?.author ? `by ${isbnCheckResult.book.author}` : ''}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => autofillExistingBook(isbnCheckResult.book)}
+                                            className="self-start bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-[11px] px-3.5 py-1.5 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5 mt-1"
+                                        >
+                                            ⚡ Autofill Details from Existing Copy
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                                        <span>✅</span>
+                                        <span>New Book Title: No existing copies found with this ISBN in catalog.</span>
+                                    </div>
+                                )
+                            )}
                         </div>
 
                         <div className='space-y-2'>
