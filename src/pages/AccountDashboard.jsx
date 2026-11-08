@@ -139,18 +139,13 @@ export default function AccountDashboard() {
   const returnedLoans = reader?.borrowedBooks?.filter(b => b.status === 'returned') || [];
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-blue-500 selection:text-white flex flex-col justify-between relative">
+    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] flex flex-col justify-between relative">
       <Navbar />
 
-      {/* Decorative Background Lighting */}
-      <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-20 right-1/4 w-[400px] h-[400px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-28 w-full flex-1 relative z-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-24 w-full flex-1 relative z-10">
         
         {/* PROFILE BANNER CARD */}
-        <div className="bg-[#0b0b0e]/90 border border-gray-800/80 rounded-[2.5rem] p-6 sm:p-10 shadow-2xl backdrop-blur-xl relative overflow-hidden mb-8">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-violet-500 to-emerald-500" />
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-lg p-6 sm:p-8 shadow-xs relative overflow-hidden mb-6">
           
           <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
             

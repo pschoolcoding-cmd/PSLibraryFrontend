@@ -616,49 +616,49 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f8] text-gray-800 font-[Inter] antialiased selection:bg-rose-500 selection:text-white pb-16">
+    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] font-[Inter] antialiased pb-16 transition-colors duration-200">
       <Navbar />
 
-      {/* Main Admin Dashboard Container - Bringova Layout */}
-      <div className="max-w-[1440px] mx-auto pt-24 px-4 sm:px-6 lg:px-8">
+      {/* Main Admin Dashboard Container */}
+      <div className="max-w-[1440px] mx-auto pt-20 px-4 sm:px-6 lg:px-8">
         
-        {/* Top Floating Dashboard Frame */}
-        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-300/60 border border-gray-100 overflow-hidden min-h-[820px] flex flex-col lg:flex-row">
+        {/* Top Dashboard Frame */}
+        <div className="bg-[var(--bg-elevated)] rounded-lg shadow-xs border border-[var(--border-color)] overflow-hidden min-h-[820px] flex flex-col lg:flex-row">
           
           {/* LEFT SIDEBAR MENU */}
-          <aside className="w-full lg:w-72 bg-[#fafbfe] border-r border-gray-100 p-6 flex flex-col justify-between shrink-0">
+          <aside className="w-full lg:w-64 bg-[var(--bg-sidebar)] border-r border-[var(--border-color)] p-5 flex flex-col justify-between shrink-0">
             <div>
               {/* Brand Logo inside Sidebar */}
               <div className="flex items-center gap-3 mb-8 px-2">
-                <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shadow-md shadow-rose-500/10">
-                  <BookOpen className="w-5 h-5 text-rose-500" />
+                <div className="w-9 h-9 rounded-md bg-[#337ab7]/15 border border-[#337ab7]/30 flex items-center justify-center text-[#337ab7]">
+                  <BookOpen className="w-4 h-4 text-[#337ab7]" />
                 </div>
                 <div>
-                  <h1 className="font-black text-xl tracking-tight text-gray-900 font-[Outfit] italic">
+                  <h1 className="font-bold text-lg tracking-tight text-[var(--text-primary)]">
                     PS Library
                   </h1>
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-rose-500">
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-[#3b9c88]">
                     Admin Portal
                   </p>
                 </div>
               </div>
 
               {/* Navigation Links */}
-              <nav className="space-y-1.5">
+              <nav className="space-y-1">
                 <button
                   onClick={() => handleTabChange('books')}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                     activeTab === 'books'
-                      ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-white'
+                      ? 'bg-[#337ab7] text-white'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <BookOpen className="w-4 h-4" />
                     <span>Book Directory</span>
                   </div>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full font-mono ${
-                    activeTab === 'books' ? 'bg-white/20 text-white' : 'bg-gray-200/60 text-gray-600'
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
+                    activeTab === 'books' ? 'bg-white/20 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
                   }`}>
                     {stats.totalBooks}
                   </span>
@@ -666,22 +666,24 @@ export default function AdminPanel() {
 
                 <button
                   onClick={() => handleTabChange('pending')}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                     activeTab === 'pending'
-                      ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-white'
+                      ? 'bg-amber-600 text-white'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-amber-500 group-hover:text-amber-600" />
+                    <CheckCircle2 className={`w-4 h-4 ${activeTab === 'pending' ? 'text-white' : 'text-amber-500'}`} />
                     <span>Pending Approvals</span>
                   </div>
                   {pendingCount > 0 ? (
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500 text-white animate-pulse">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500 text-white">
                       {pendingCount} NEW
                     </span>
                   ) : (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200/60 text-gray-500">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
+                      activeTab === 'pending' ? 'bg-white/20 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
+                    }`}>
                       0
                     </span>
                   )}
@@ -689,18 +691,18 @@ export default function AdminPanel() {
 
                 <button
                   onClick={() => handleTabChange('users')}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                     activeTab === 'users'
-                      ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-white'
+                      ? 'bg-[#337ab7] text-white'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <Users className="w-4 h-4" />
                     <span>User Directory</span>
                   </div>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full font-mono ${
-                    activeTab === 'users' ? 'bg-white/20 text-white' : 'bg-gray-200/60 text-gray-600'
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
+                    activeTab === 'users' ? 'bg-white/20 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
                   }`}>
                     {stats.totalReaders}
                   </span>
@@ -708,76 +710,78 @@ export default function AdminPanel() {
 
                 <button
                   onClick={() => handleTabChange('admin-stats')}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                     activeTab === 'admin-stats'
-                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-white'
+                      ? 'bg-[#3b9c88] text-white'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Shield className="w-4 h-4 text-purple-500" />
+                    <Shield className={`w-4 h-4 ${activeTab === 'admin-stats' ? 'text-white' : 'text-[#3b9c88]'}`} />
                     <span>Admins & Statistics</span>
                   </div>
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
+                    activeTab === 'admin-stats' ? 'bg-white/20 text-white' : 'bg-[#3b9c88]/15 text-[#3b9c88]'
+                  }`}>
                     STATS
                   </span>
                 </button>
 
                 <button
                   onClick={() => navigate('/admin/genres')}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold text-gray-500 hover:text-gray-900 hover:bg-white transition-all cursor-pointer"
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <Sparkles className="w-4 h-4 text-indigo-500" />
+                    <Sparkles className="w-4 h-4 text-[#337ab7]" />
                     <span>AI Genre Normalizer</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => navigate('/add')}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-bold text-gray-500 hover:text-gray-900 hover:bg-white transition-all cursor-pointer"
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <PlusCircle className="w-4 h-4 text-emerald-500" />
+                    <PlusCircle className="w-4 h-4 text-[#3b9c88]" />
                     <span>Catalog Intake Form</span>
                   </div>
                 </button>
               </nav>
             </div>
 
-            {/* Bottom Toggle Bar matching Bringova "Busy Mode" */}
-            <div className="pt-6 border-t border-gray-100">
-              <div className="flex items-center justify-between px-3 py-2 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            {/* Bottom Status Bar */}
+            <div className="pt-6 border-t border-[var(--border-color)]">
+              <div className="flex items-center justify-between px-3 py-2 bg-[var(--bg-elevated)] rounded-md border border-[var(--border-color)]">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-bold text-gray-700">Catalog Online</span>
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-semibold text-[var(--text-primary)]">Catalog Online</span>
                 </div>
-                <span className="text-[10px] font-mono text-gray-400 font-bold">v2.4</span>
+                <span className="text-[10px] font-mono text-[var(--text-muted)] font-semibold">v2.4</span>
               </div>
             </div>
           </aside>
 
           {/* RIGHT MAIN CONTENT AREA */}
-          <main className="flex-1 p-6 lg:p-10 flex flex-col justify-between overflow-x-hidden">
+          <main className="flex-1 p-6 lg:p-8 flex flex-col justify-between overflow-x-hidden bg-[var(--bg-elevated)]">
             
             <div>
               {/* Top Header Bar */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-5 border-b border-[var(--border-color)]">
                 
                 {/* Search Box */}
                 <div className="relative w-full sm:w-80">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                  <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search books, ISBN, or users..."
                     value={searchQuery}
                     onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-                    className="w-full bg-[#f6f7fb] border border-gray-100 focus:bg-white focus:border-rose-300 outline-none rounded-2xl pl-11 pr-4 py-3 text-xs font-semibold text-gray-800 transition-all placeholder:text-gray-400"
+                    className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none rounded-md pl-10 pr-4 py-2 text-xs font-medium text-[var(--text-primary)] transition-colors placeholder:text-[var(--text-muted)]"
                   />
                   {searchQuery && (
                     <button 
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -785,24 +789,24 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Right Profile & Mode Controls */}
-                <div className="flex items-center gap-4 self-end sm:self-auto">
-                  <div className="hidden sm:flex items-center gap-2 bg-[#f6f7fb] px-3.5 py-2 rounded-2xl border border-gray-100">
-                    <span className="text-xs font-bold text-gray-600">Open For Orders</span>
-                    <div className="w-4 h-4 rounded-full bg-emerald-500/20 border border-emerald-500 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                <div className="flex items-center gap-3 self-end sm:self-auto">
+                  <div className="hidden sm:flex items-center gap-2 bg-[var(--bg-secondary)] px-3 py-1.5 rounded-md border border-[var(--border-color)]">
+                    <span className="text-xs font-semibold text-[var(--text-secondary)]">System Active</span>
+                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 border border-emerald-500 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                     </div>
                   </div>
 
-                   {/* Admin User Profile */}
-                  <div className="flex items-center gap-3 bg-[#f6f7fb] p-1.5 pr-4 rounded-2xl border border-gray-100">
+                  {/* Admin User Profile */}
+                  <div className="flex items-center gap-2.5 bg-[var(--bg-secondary)] p-1.5 pr-3.5 rounded-md border border-[var(--border-color)]">
                     <img
                       src={reader?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(reader?.name || 'Admin')}`}
                       alt="Admin"
-                      className="w-8 h-8 rounded-xl object-cover bg-rose-100 border border-rose-200"
+                      className="w-7 h-7 rounded object-cover border border-[var(--border-color)]"
                     />
                     <div className="text-left leading-tight">
-                      <p className="text-xs font-black text-gray-900 font-[Outfit]">{reader?.name || 'Admin User'}</p>
-                      <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">
+                      <p className="text-xs font-bold text-[var(--text-primary)]">{reader?.name || 'Admin User'}</p>
+                      <p className="text-[10px] text-[#3b9c88] font-bold uppercase tracking-wider">
                         {reader?.role === 'superadmin' ? 'Super Admin' : reader?.role === 'admin' ? 'Admin' : 'Subadmin'}
                       </p>
                     </div>
@@ -814,13 +818,13 @@ export default function AdminPanel() {
               {/* Title & Tab Header Bar */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div>
-                  <h2 className="text-2xl font-black tracking-tight text-gray-900 font-[Outfit]">
+                  <h2 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">
                     {activeTab === 'books' && 'Book Management Directory'}
                     {activeTab === 'pending' && 'Pending Approval Queue'}
                     {activeTab === 'users' && 'User & Reader Directory'}
                     {activeTab === 'admin-stats' && 'Admins & Contribution Statistics'}
                   </h2>
-                  <p className="text-xs text-gray-400 font-medium mt-0.5">
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                     {activeTab === 'books' && 'Browse, edit metadata, update cover art, or generate new SUX copies.'}
                     {activeTab === 'pending' && 'Review and approve subadmin book submissions before they appear in the public catalog.'}
                     {activeTab === 'users' && 'View system users, change roles, edit accounts, or reset credentials.'}
@@ -833,7 +837,7 @@ export default function AdminPanel() {
                   {activeTab === 'books' && (
                     <button
                       onClick={() => navigate('/add')}
-                      className="bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-2xl shadow-lg shadow-rose-500/20 transition-all flex items-center gap-2 cursor-pointer"
+                      className="bg-[#337ab7] hover:bg-[#286090] text-white font-semibold text-xs px-4 py-2 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <PlusCircle className="w-4 h-4" />
                       Add New Title
@@ -846,7 +850,7 @@ export default function AdminPanel() {
                         setUserForm({ _id: '', name: '', surname: '', email: '', role: 'reader', birthdate: '', studentClass: '', isExternal: false, avatar: '', password: '' });
                         setCreateUserModal(true);
                       }}
-                      className="bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-2xl shadow-lg shadow-rose-500/20 transition-all flex items-center gap-2 cursor-pointer"
+                      className="bg-[#3b9c88] hover:bg-[#318473] text-white font-semibold text-xs px-4 py-2 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <UserPlus className="w-4 h-4" />
                       Create Student / Admin
@@ -857,40 +861,40 @@ export default function AdminPanel() {
 
               {/* PENDING APPROVALS TAB */}
               {activeTab === 'pending' && (
-                <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                <div className="bg-[var(--bg-elevated)] rounded-lg border border-[var(--border-color)] overflow-hidden">
                   {loading ? (
-                    <div className="py-16 text-center text-gray-400 flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
-                      <span className="font-bold text-xs">Loading pending submissions...</span>
+                    <div className="py-16 text-center text-[var(--text-secondary)] flex flex-col items-center gap-3">
+                      <div className="w-7 h-7 border-2 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+                      <span className="font-semibold text-xs">Loading pending submissions...</span>
                     </div>
                   ) : pendingBooks.length === 0 ? (
-                    <div className="py-20 text-center flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 rounded-3xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-2xl mb-2">✅</div>
-                      <p className="font-black text-gray-500 text-sm">All caught up!</p>
-                      <p className="text-gray-400 text-xs">No pending book submissions awaiting approval.</p>
+                    <div className="py-20 text-center flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-xl mb-1">✅</div>
+                      <p className="font-bold text-[var(--text-primary)] text-sm">All caught up!</p>
+                      <p className="text-[var(--text-secondary)] text-xs">No pending book submissions awaiting approval.</p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-[var(--border-color)]">
                       {pendingBooks.map((book) => (
-                        <div key={book._id} className="flex items-start gap-5 p-5 hover:bg-amber-50/50 transition-colors">
+                        <div key={book._id} className="flex items-start gap-4 p-4 hover:bg-[var(--bg-hover)] transition-colors">
                           <img
                             src={book.image || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200'}
                             alt={book.name}
-                            className="w-12 h-16 object-cover rounded-xl border border-gray-200 shadow-sm shrink-0"
+                            className="w-12 h-16 object-cover rounded border border-[var(--border-color)] shrink-0"
                             onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200'; }}
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-4 flex-wrap">
                               <div>
-                                <p className="font-black text-gray-900 text-sm leading-tight">{book.name}</p>
-                                <p className="text-xs text-gray-500 mt-0.5">by <span className="font-bold">{book.author || 'Unknown Author'}</span></p>
+                                <p className="font-bold text-[var(--text-primary)] text-sm leading-tight">{book.name}</p>
+                                <p className="text-xs text-[var(--text-secondary)] mt-0.5">by <span className="font-semibold text-[#3b9c88]">{book.author || 'Unknown Author'}</span></p>
                                 <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                  <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{book.bid}</span>
-                                  <span className="text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-full">
+                                  <span className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-secondary)] border border-[var(--border-color)] px-2 py-0.5 rounded">{book.bid}</span>
+                                  <span className="text-[10px] font-semibold text-[#337ab7] bg-[#337ab7]/15 border border-[#337ab7]/30 px-2 py-0.5 rounded">
                                     Submitted by: {book.whoadded || 'Unknown'}
                                   </span>
                                   {book.addedByRole && (
-                                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300/60">
+                                    <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30">
                                       {book.addedByRole}
                                     </span>
                                   )}
@@ -899,14 +903,14 @@ export default function AdminPanel() {
                               <div className="flex items-center gap-2 shrink-0">
                                 <button
                                   onClick={() => handleApproveBook(book._id)}
-                                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                                  className="bg-[#3b9c88] hover:bg-[#318473] text-white font-semibold text-xs px-3.5 py-1.5 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                   Approve
                                 </button>
                                 <button
                                   onClick={() => handleDeleteBook(book._id)}
-                                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs px-3 py-2 rounded-xl border border-rose-200/60 transition-all flex items-center gap-1.5 cursor-pointer"
+                                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-semibold text-xs px-3 py-1.5 rounded-md border border-rose-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                   Reject
@@ -914,7 +918,7 @@ export default function AdminPanel() {
                               </div>
                             </div>
                             {book.description && (
-                              <p className="text-[11px] text-gray-400 mt-2 line-clamp-2">{book.description}</p>
+                              <p className="text-[11px] text-[var(--text-secondary)] mt-2 line-clamp-2">{book.description}</p>
                             )}
                           </div>
                         </div>
@@ -928,67 +932,67 @@ export default function AdminPanel() {
               {activeTab === 'admin-stats' && (
                 <div className="space-y-4">
                   {/* Fair Ranking Notice */}
-                  <div className="bg-purple-50 border border-purple-200/70 rounded-2xl p-4 flex items-center gap-3 text-purple-900 text-xs shadow-sm">
-                    <Sparkles className="w-5 h-5 text-purple-600 shrink-0" />
+                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg p-4 flex items-center gap-3 text-[var(--text-primary)] text-xs">
+                    <Sparkles className="w-5 h-5 text-[#337ab7] shrink-0" />
                     <div>
-                      <p className="font-black text-purple-950 font-[Outfit] uppercase tracking-wider text-[11px]">
+                      <p className="font-bold text-[var(--text-primary)] uppercase tracking-wider text-[11px]">
                         Fair Leaderboard Policy
                       </p>
-                      <p className="text-purple-700 text-[11px] mt-0.5">
+                      <p className="text-[var(--text-secondary)] text-[11px] mt-0.5">
                         Admin rankings are determined by <strong>distinct book types added (same ISBN = 1 type)</strong>. Submitting 5 copies in one form counts as 1 book type towards your ranking position while displaying total physical copies.
                       </p>
                     </div>
                   </div>
 
                   {loading ? (
-                    <div className="bg-white rounded-3xl border border-gray-100 py-16 text-center flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-2 border-purple-400/20 border-t-purple-500 rounded-full animate-spin" />
-                      <span className="font-bold text-xs text-gray-400">Loading statistics...</span>
+                    <div className="bg-[var(--bg-elevated)] rounded-lg border border-[var(--border-color)] py-16 text-center flex flex-col items-center gap-3">
+                      <div className="w-7 h-7 border-2 border-[#337ab7]/20 border-t-[#337ab7] rounded-full animate-spin" />
+                      <span className="font-semibold text-xs text-[var(--text-secondary)]">Loading statistics...</span>
                     </div>
                   ) : filteredAdminStats.length === 0 ? (
-                    <div className="bg-white rounded-3xl border border-gray-100 py-20 text-center flex flex-col items-center gap-3">
-                      <p className="font-black text-gray-400 text-sm">No contribution data available matching your search.</p>
+                    <div className="bg-[var(--bg-elevated)] rounded-lg border border-[var(--border-color)] py-20 text-center flex flex-col items-center gap-3">
+                      <p className="font-bold text-[var(--text-secondary)] text-sm">No contribution data available matching your search.</p>
                     </div>
                   ) : (
                     filteredAdminStats.map((entry, idx) => {
                       const medals = ['🥇', '🥈', '🥉'];
                       const roleColors = {
-                        superadmin: 'bg-purple-100 text-purple-700 border-purple-300/60',
-                        admin: 'bg-rose-100 text-rose-700 border-rose-300/60',
-                        subadmin: 'bg-blue-100 text-blue-700 border-blue-300/60',
-                        reader: 'bg-gray-100 text-gray-600 border-gray-200',
+                        superadmin: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+                        admin: 'bg-[#337ab7]/15 text-[#337ab7] border-[#337ab7]/30',
+                        subadmin: 'bg-[#3b9c88]/15 text-[#3b9c88] border-[#3b9c88]/30',
+                        reader: 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)]',
                       };
                       return (
-                        <div key={entry._id} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex items-center gap-5">
-                          <div className="text-3xl w-10 text-center shrink-0 font-black">{medals[idx] || `#${idx + 1}`}</div>
+                        <div key={entry._id} className="bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)] p-4 flex items-center gap-4">
+                          <div className="text-2xl w-9 text-center shrink-0 font-bold text-[var(--text-primary)]">{medals[idx] || `#${idx + 1}`}</div>
                           <img
                             src={entry.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(entry.name || entry._id)}`}
                             alt={entry.name}
-                            className="w-11 h-11 rounded-2xl border border-gray-200 shadow-sm shrink-0 bg-gray-50 object-cover"
+                            className="w-10 h-10 rounded-md border border-[var(--border-color)] shrink-0 object-cover"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-black text-gray-900 text-sm">{entry.name} {entry.surname || ''}</p>
-                              <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${roleColors[entry.role] || roleColors.reader}`}>
+                              <p className="font-bold text-[var(--text-primary)] text-sm">{entry.name} {entry.surname || ''}</p>
+                              <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded border ${roleColors[entry.role] || roleColors.reader}`}>
                                 {entry.role}
                               </span>
                             </div>
-                            <p className="text-[11px] text-gray-400 mt-0.5">{entry.email}</p>
-                            <div className="flex items-center gap-3 mt-2.5 flex-wrap text-xs">
-                              <span className="font-black text-purple-700 bg-purple-50 px-3 py-1 rounded-xl border border-purple-200/60 flex items-center gap-1.5">
-                                <BookOpen className="w-3.5 h-3.5 text-purple-600" />
-                                <span className="font-black text-purple-900 text-sm">{entry.uniqueTypesCount || 0}</span> Book Types Added
+                            <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{entry.email}</p>
+                            <div className="flex items-center gap-3 mt-2 flex-wrap text-xs">
+                              <span className="font-semibold text-[#337ab7] bg-[#337ab7]/10 px-2.5 py-1 rounded border border-[#337ab7]/30 flex items-center gap-1.5">
+                                <BookOpen className="w-3.5 h-3.5 text-[#337ab7]" />
+                                <span className="font-bold text-sm">{entry.uniqueTypesCount || 0}</span> Book Types Added
                               </span>
-                              <span className="text-gray-500 font-semibold text-[11px]">
+                              <span className="text-[var(--text-secondary)] font-medium text-[11px]">
                                 ({entry.addedCount || 0} total physical copies)
                               </span>
-                              <span className="text-gray-300">|</span>
-                              <span className="font-bold text-gray-700">
-                                <span className="text-emerald-600 font-black">{entry.approvedCount || 0}</span> approved
+                              <span className="text-[var(--border-color)]">|</span>
+                              <span className="font-semibold text-[var(--text-secondary)]">
+                                <span className="text-emerald-500 font-bold">{entry.approvedCount || 0}</span> approved
                               </span>
-                              <span className="text-gray-300">|</span>
-                              <span className="font-bold text-gray-700">
-                                <span className="text-amber-500 font-black">{entry.pendingCount || 0}</span> pending
+                              <span className="text-[var(--border-color)]">|</span>
+                              <span className="font-semibold text-[var(--text-secondary)]">
+                                <span className="text-amber-500 font-bold">{entry.pendingCount || 0}</span> pending
                               </span>
                             </div>
                           </div>
@@ -997,7 +1001,7 @@ export default function AdminPanel() {
                               <select
                                 defaultValue={entry.role}
                                 onChange={(e) => handleChangeUserRole(entry._id, e.target.value, entry.role)}
-                                className="text-xs font-bold border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 hover:border-purple-400 focus:outline-none focus:border-purple-500 cursor-pointer transition-colors"
+                                className="text-xs font-semibold border border-[var(--border-color)] rounded-md px-3 py-1.5 bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)] cursor-pointer transition-colors"
                               >
                                 <option value="reader">Reader</option>
                                 <option value="subadmin">Subadmin</option>
@@ -1015,29 +1019,29 @@ export default function AdminPanel() {
 
               {/* BOOKS & USERS TABLE */}
               {(activeTab === 'books' || activeTab === 'users') && (
-              <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+              <div className="bg-[var(--bg-elevated)] rounded-lg border border-[var(--border-color)] overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     
                     <thead>
-                      <tr className="border-b border-gray-100 bg-[#fbfcfd] text-[11px] font-extrabold uppercase tracking-wider text-gray-400">
-                        <th className="py-4 px-6">Id</th>
-                        <th className="py-4 px-6">{activeTab === 'books' ? 'Book Title & Cover' : 'User Profile'}</th>
-                        <th className="py-4 px-6">{activeTab === 'books' ? 'Author / Creator' : 'Email Address'}</th>
-                        <th className="py-4 px-6">{activeTab === 'books' ? 'Borrowed Status' : 'Role'}</th>
-                        <th className="py-4 px-6">{activeTab === 'books' ? 'Added By' : 'Class / Details'}</th>
-                        <th className="py-4 px-6 text-right">Action</th>
+                      <tr className="border-b border-[var(--border-color)] bg-[var(--bg-secondary)] text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                        <th className="py-3.5 px-5">Id</th>
+                        <th className="py-3.5 px-5">{activeTab === 'books' ? 'Book Title & Cover' : 'User Profile'}</th>
+                        <th className="py-3.5 px-5">{activeTab === 'books' ? 'Author / Creator' : 'Email Address'}</th>
+                        <th className="py-3.5 px-5">{activeTab === 'books' ? 'Borrowed Status' : 'Role'}</th>
+                        <th className="py-3.5 px-5">{activeTab === 'books' ? 'Added By' : 'Class / Details'}</th>
+                        <th className="py-3.5 px-5 text-right">Action</th>
                       </tr>
                     </thead>
 
-                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                    <tbody className="divide-y divide-[var(--border-color)] text-xs font-medium text-[var(--text-primary)]">
                       
                       {loading ? (
                         <tr>
-                          <td colSpan={6} className="py-16 text-center text-gray-400">
+                          <td colSpan={6} className="py-16 text-center text-[var(--text-secondary)]">
                             <div className="flex flex-col items-center justify-center gap-3">
-                              <div className="w-8 h-8 border-3 border-rose-500/20 border-t-rose-500 rounded-full animate-spin" />
-                              <span className="font-bold text-xs">Loading directory data...</span>
+                              <div className="w-7 h-7 border-2 border-[#337ab7]/20 border-t-[#337ab7] rounded-full animate-spin" />
+                              <span className="font-semibold text-xs">Loading directory data...</span>
                             </div>
                           </td>
                         </tr>
@@ -1045,7 +1049,7 @@ export default function AdminPanel() {
                         // BOOKS LIST ROWS
                         books.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="py-12 text-center text-gray-400">
+                            <td colSpan={6} className="py-12 text-center text-[var(--text-secondary)]">
                               No book records found matching your filter criteria.
                             </td>
                           </tr>
@@ -1053,29 +1057,29 @@ export default function AdminPanel() {
                           books.map((book) => {
                             const isBorrowed = book.borrowed && book.borrowed !== '0' && book.borrowed !== '';
                             return (
-                              <tr key={book._id} className="hover:bg-[#fafbfe] transition-colors group">
+                              <tr key={book._id} className="hover:bg-[var(--bg-hover)] transition-colors group">
                                 
                                 {/* BID Code */}
-                                <td className="py-4 px-6 font-mono font-bold text-gray-500 text-[11px]">
+                                <td className="py-3.5 px-5 font-mono font-semibold text-[var(--text-secondary)] text-[11px]">
                                   #{book.bid || book._id.slice(-6)}
                                 </td>
 
                                 {/* Cover & Name */}
-                                <td className="py-4 px-6">
+                                <td className="py-3.5 px-5">
                                   <div className="flex items-center gap-3.5">
                                     <img
                                       src={book.image || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200'}
                                       alt={book.name}
-                                      className="w-10 h-14 object-cover rounded-xl border border-gray-200 shadow-sm shrink-0 bg-gray-50"
+                                      className="w-9 h-13 object-cover rounded border border-[var(--border-color)] shrink-0 bg-[var(--bg-secondary)]"
                                       onError={(e) => {
                                         e.target.src = 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200';
                                       }}
                                     />
                                     <div>
-                                      <p className="font-bold text-gray-900 group-hover:text-rose-500 transition-colors line-clamp-1">
+                                      <p className="font-bold text-[var(--text-primary)] group-hover:text-[#337ab7] transition-colors line-clamp-1">
                                         {book.name}
                                       </p>
-                                      <p className="text-[10px] text-gray-400 font-mono">
+                                      <p className="text-[10px] text-[var(--text-muted)] font-mono">
                                         {book.whentaken ? `Intake: ${book.whentaken}` : 'Intake: 01/04/2026'}
                                       </p>
                                     </div>
@@ -1083,19 +1087,19 @@ export default function AdminPanel() {
                                 </td>
 
                                 {/* Author */}
-                                <td className="py-4 px-6 font-bold text-gray-700">
+                                <td className="py-3.5 px-5 font-semibold text-[#3b9c88]">
                                   {book.author}
                                 </td>
 
                                 {/* Borrowed Status */}
-                                <td className="py-4 px-6">
+                                <td className="py-3.5 px-5">
                                   {isBorrowed ? (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                                       Borrowed: {book.borrowed}
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-200/60">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
                                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                       In Library Stock
                                     </span>
@@ -1103,23 +1107,23 @@ export default function AdminPanel() {
                                 </td>
 
                                 {/* Added By */}
-                                <td className="py-4 px-6">
+                                <td className="py-3.5 px-5">
                                   <div className="flex flex-col gap-1">
-                                    <span className="text-xs font-bold text-gray-700 truncate max-w-[140px]">
+                                    <span className="text-xs font-semibold text-[var(--text-secondary)] truncate max-w-[140px]">
                                       {book.whoadded && book.whoadded !== 'none' ? book.whoadded : '—'}
                                     </span>
                                     {book.addedByRole && (
-                                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full w-fit border ${
-                                        book.addedByRole === 'superadmin' ? 'bg-purple-50 text-purple-700 border-purple-200/60' :
-                                        book.addedByRole === 'admin' ? 'bg-rose-50 text-rose-600 border-rose-200/60' :
-                                        book.addedByRole === 'subadmin' ? 'bg-blue-50 text-blue-600 border-blue-200/60' :
-                                        'bg-gray-100 text-gray-500 border-gray-200'
+                                      <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded w-fit border ${
+                                        book.addedByRole === 'superadmin' ? 'bg-purple-500/15 text-purple-400 border-purple-500/30' :
+                                        book.addedByRole === 'admin' ? 'bg-[#337ab7]/15 text-[#337ab7] border-[#337ab7]/30' :
+                                        book.addedByRole === 'subadmin' ? 'bg-[#3b9c88]/15 text-[#3b9c88] border-[#3b9c88]/30' :
+                                        'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)]'
                                       }`}>
                                         {book.addedByRole}
                                       </span>
                                     )}
                                     {!book.isApproved && (
-                                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full w-fit bg-amber-50 text-amber-600 border border-amber-200/60 animate-pulse">
+                                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded w-fit bg-amber-500/15 text-amber-500 border border-amber-500/30">
                                         Pending
                                       </span>
                                     )}
@@ -1127,28 +1131,28 @@ export default function AdminPanel() {
                                 </td>
 
                                 {/* 3-Dots Action Popup Menu */}
-                                <td className="py-4 px-6 text-right relative">
+                                <td className="py-3.5 px-5 text-right relative">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setActionMenuId(actionMenuId === book._id ? null : book._id);
                                     }}
-                                    className="p-2 rounded-xl text-gray-400 hover:text-gray-800 hover:bg-gray-100 transition-all cursor-pointer"
+                                    className="p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
                                   >
                                     <MoreVertical className="w-4 h-4" />
                                   </button>
 
                                   {/* POPUP ACTION DROPDOWN */}
                                   {actionMenuId === book._id && (
-                                    <div className="absolute right-6 top-12 w-48 bg-white border border-gray-100 rounded-2xl shadow-2xl p-2 z-50 text-left animate-in fade-in zoom-in-95 duration-150">
+                                    <div className="absolute right-6 top-11 w-48 bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-lg shadow-xl p-1.5 z-50 text-left">
                                       <button
                                         onClick={() => {
                                           setActionMenuId(null);
                                           handleOpenEditBook(book);
                                         }}
-                                        className="w-full px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-rose-50 hover:text-rose-600 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                        className="w-full px-3 py-2 rounded-md text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2.5 transition-colors cursor-pointer"
                                       >
-                                        <Edit3 className="w-3.5 h-3.5 text-rose-500" />
+                                        <Edit3 className="w-3.5 h-3.5 text-[#337ab7]" />
                                         Edit Details & Photo
                                       </button>
 
@@ -1157,22 +1161,22 @@ export default function AdminPanel() {
                                           setActionMenuId(null);
                                           handleOpenSuxModal(book);
                                         }}
-                                        className="w-full px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2.5 transition-colors cursor-pointer mt-1"
+                                        className="w-full px-3 py-2 rounded-md text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2.5 transition-colors cursor-pointer mt-0.5"
                                       >
-                                        <Copy className="w-3.5 h-3.5 text-blue-500" />
+                                        <Copy className="w-3.5 h-3.5 text-[#3b9c88]" />
                                         + Add SUX Copy
                                       </button>
 
-                                      <div className="h-px bg-gray-100 my-1" />
+                                      <div className="h-px bg-[var(--border-color)] my-1" />
 
                                       <button
                                         onClick={() => {
                                           setActionMenuId(null);
                                           handleDeleteBook(book._id);
                                         }}
-                                        className="w-full px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                        className="w-full px-3 py-2 rounded-md text-xs font-semibold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
                                       >
-                                        <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                                        <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                                         Delete Book Entry
                                       </button>
                                     </div>
@@ -1187,33 +1191,33 @@ export default function AdminPanel() {
                         // USERS LIST ROWS
                         users.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="py-12 text-center text-gray-400">
+                            <td colSpan={6} className="py-12 text-center text-[var(--text-secondary)]">
                               No user accounts found matching your filter criteria.
                             </td>
                           </tr>
                         ) : (
                           users.map((u) => (
-                            <tr key={u._id} className="hover:bg-[#fafbfe] transition-colors group">
+                            <tr key={u._id} className="hover:bg-[var(--bg-hover)] transition-colors group">
                               
                               {/* User ID */}
-                              <td className="py-4 px-6 font-mono font-bold text-gray-400 text-[11px]">
+                              <td className="py-3.5 px-5 font-mono font-semibold text-[var(--text-secondary)] text-[11px]">
                                 #{u._id.slice(-6)}
                               </td>
 
                               {/* Profile Avatar & Name */}
-                              <td className="py-4 px-6">
+                              <td className="py-3.5 px-5">
                                 <div className="flex items-center gap-3.5">
                                   <img
                                     src={u.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`}
                                     alt={u.name}
-                                    className="w-9 h-9 object-cover rounded-full border border-gray-200 shadow-sm shrink-0 bg-gray-50"
+                                    className="w-8 h-8 object-cover rounded-md border border-[var(--border-color)] shrink-0 bg-[var(--bg-secondary)]"
                                   />
                                   <div>
-                                    <p className="font-bold text-gray-900 group-hover:text-rose-500 transition-colors">
+                                    <p className="font-bold text-[var(--text-primary)] group-hover:text-[#337ab7] transition-colors">
                                       {u.name} {u.surname}
                                     </p>
                                     {u.isExternal && (
-                                      <span className="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">
+                                      <span className="text-[9px] font-semibold text-purple-400 bg-purple-500/15 px-1.5 py-0.5 rounded">
                                         External Visitor
                                       </span>
                                     )}
@@ -1222,74 +1226,74 @@ export default function AdminPanel() {
                               </td>
 
                               {/* Email */}
-                              <td className="py-4 px-6 font-medium text-gray-600">
+                              <td className="py-3.5 px-5 font-medium text-[var(--text-secondary)]">
                                 {u.email}
                               </td>
 
                               {/* Role Badge */}
-                              <td className="py-4 px-6">
+                              <td className="py-3.5 px-5">
                                 {u.role === 'superadmin' ? (
-                                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200/60">
-                                    <Shield className="w-3 h-3 text-purple-500" />
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">
+                                    <Shield className="w-3 h-3" />
                                     Super Admin
                                   </span>
                                 ) : u.role === 'admin' ? (
-                                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-200/60">
-                                    <Shield className="w-3 h-3 text-rose-500" />
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#337ab7]/15 text-[#337ab7] border border-[#337ab7]/30">
+                                    <Shield className="w-3 h-3" />
                                     Admin
                                   </span>
                                 ) : u.role === 'subadmin' ? (
-                                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200/60">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#3b9c88]/15 text-[#3b9c88] border border-[#3b9c88]/30">
                                     Subadmin
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-semibold bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-color)]">
                                     Reader
                                   </span>
                                 )}
                               </td>
 
                               {/* Class / Details */}
-                              <td className="py-4 px-6 font-medium text-gray-500">
+                              <td className="py-3.5 px-5 font-medium text-[var(--text-secondary)]">
                                 {u.studentClass ? `Class: ${u.studentClass}` : 'Standard Account'}
                               </td>
 
                               {/* Action Menu */}
-                              <td className="py-4 px-6 text-right relative">
+                              <td className="py-3.5 px-5 text-right relative">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setActionMenuId(actionMenuId === u._id ? null : u._id);
                                   }}
-                                  className="p-2 rounded-xl text-gray-400 hover:text-gray-800 hover:bg-gray-100 transition-all cursor-pointer"
+                                  className="p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
                                 >
                                   <MoreVertical className="w-4 h-4" />
                                 </button>
 
                                 {/* POPUP ACTION DROPDOWN FOR USER */}
                                 {actionMenuId === u._id && (
-                                  <div className="absolute right-6 top-12 w-48 bg-white border border-gray-100 rounded-2xl shadow-2xl p-2 z-50 text-left animate-in fade-in zoom-in-95 duration-150">
+                                  <div className="absolute right-6 top-11 w-48 bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-lg shadow-xl p-1.5 z-50 text-left">
                                     <button
                                       onClick={() => {
                                         setActionMenuId(null);
                                         handleOpenEditUser(u);
                                       }}
-                                      className="w-full px-3 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-rose-50 hover:text-rose-600 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                      className="w-full px-3 py-2 rounded-md text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2.5 transition-colors cursor-pointer"
                                     >
-                                      <Edit3 className="w-3.5 h-3.5 text-rose-500" />
+                                      <Edit3 className="w-3.5 h-3.5 text-[#337ab7]" />
                                       Edit User Profile
                                     </button>
 
-                                    <div className="h-px bg-gray-100 my-1" />
+                                    <div className="h-px bg-[var(--border-color)] my-1" />
 
                                     <button
                                       onClick={() => {
                                         setActionMenuId(null);
                                         handleDeleteUser(u._id);
                                       }}
-                                      className="w-full px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                      className="w-full px-3 py-2 rounded-md text-xs font-semibold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
                                     >
-                                      <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                                      <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                                       Delete Account
                                     </button>
                                   </div>
@@ -1311,17 +1315,17 @@ export default function AdminPanel() {
             </div>
 
             {/* Pagination Controls */}
-            <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
-              <p className="text-xs font-bold text-gray-400">
-                Showing Page <span className="text-gray-900 font-black">{page}</span> of{' '}
-                <span className="text-gray-900 font-black">{totalPages}</span> ({totalCount} total items)
+            <div className="mt-8 flex items-center justify-between border-t border-[var(--border-color)] pt-5">
+              <p className="text-xs font-medium text-[var(--text-secondary)]">
+                Showing Page <span className="text-[var(--text-primary)] font-bold">{page}</span> of{' '}
+                <span className="text-[var(--text-primary)] font-bold">{totalPages}</span> ({totalCount} total items)
               </p>
 
               <div className="flex items-center gap-2">
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
-                  className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-secondary)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" /> Previous
                 </button>
@@ -1329,7 +1333,7 @@ export default function AdminPanel() {
                 <button
                   disabled={page >= totalPages}
                   onClick={() => setPage(page + 1)}
-                  className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-secondary)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer"
                 >
                   Next <ChevronRight className="w-4 h-4" />
                 </button>
@@ -1344,14 +1348,14 @@ export default function AdminPanel() {
 
       {/* ================= EDIT BOOK & PHOTO MODAL ================= */}
       {editBookModal && (
-        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-elevated)] text-[var(--text-primary)] rounded-lg max-w-2xl w-full p-6 shadow-2xl border border-[var(--border-color)] max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-[var(--border-color)]">
               <div>
-                <h3 className="text-xl font-black text-gray-900 font-[Outfit]">Edit Book & Cover Photo</h3>
-                <p className="text-xs text-gray-400">Update catalog metadata and art assets</p>
+                <h3 className="text-lg font-bold text-[var(--text-primary)]">Edit Book & Cover Photo</h3>
+                <p className="text-xs text-[var(--text-secondary)]">Update catalog metadata and art assets</p>
               </div>
-              <button onClick={() => setEditBookModal(null)} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100">
+              <button onClick={() => setEditBookModal(null)} className="p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1360,19 +1364,19 @@ export default function AdminPanel() {
               
               {/* Cover Art Upload / Preview */}
               <div className="md:col-span-1 space-y-3">
-                <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Book Cover Art</label>
-                <div className="aspect-[3/4] rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group">
+                <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Book Cover Art</label>
+                <div className="aspect-[3/4] rounded-lg bg-[var(--bg-secondary)] border border-dashed border-[var(--border-color)] flex flex-col items-center justify-center relative overflow-hidden group">
                   {bookForm.image ? (
                     <img src={bookForm.image} alt="Cover Preview" className="w-full h-full object-cover" />
                   ) : (
                     <div className="text-center p-4">
-                      <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                      <span className="text-[10px] font-bold text-gray-400">Upload Photo</span>
+                      <Upload className="w-7 h-7 text-[var(--text-muted)] mx-auto mb-2" />
+                      <span className="text-[10px] font-semibold text-[var(--text-secondary)]">Upload Photo</span>
                     </div>
                   )}
                   {uploadingImg && (
-                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                      <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-[#337ab7] border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
                   <input
@@ -1387,78 +1391,78 @@ export default function AdminPanel() {
                   placeholder="Or paste Image URL..."
                   value={bookForm.image}
                   onChange={(e) => setBookForm({ ...bookForm, image: e.target.value })}
-                  className="w-full text-[11px] p-2.5 rounded-xl border border-gray-200 bg-gray-50 font-mono"
+                  className="w-full text-[11px] p-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] font-mono outline-none focus:border-[var(--accent-primary)]"
                 />
               </div>
 
               {/* Form Metadata Fields */}
               <div className="md:col-span-2 space-y-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Book Title</label>
+                  <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Book Title</label>
                   <input
                     type="text"
                     value={bookForm.name}
                     onChange={(e) => setBookForm({ ...bookForm, name: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 text-xs font-bold mt-1"
+                    className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-semibold mt-1 outline-none focus:border-[var(--accent-primary)]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Author</label>
+                    <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Author</label>
                     <input
                       type="text"
                       value={bookForm.author}
                       onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })}
-                      className="w-full p-3 rounded-xl border border-gray-200 text-xs font-bold mt-1"
+                      className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-semibold mt-1 outline-none focus:border-[var(--accent-primary)]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">BID / Barcode</label>
+                    <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">BID / Barcode</label>
                     <input
                       type="text"
                       value={bookForm.bid}
                       onChange={(e) => setBookForm({ ...bookForm, bid: e.target.value })}
-                      className="w-full p-3 rounded-xl border border-gray-200 text-xs font-mono font-bold mt-1"
+                      className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-mono font-semibold mt-1 outline-none focus:border-[var(--accent-primary)]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Borrowed Status (0 = Available)</label>
+                  <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Borrowed Status (0 = Available)</label>
                   <input
                     type="text"
                     value={bookForm.borrowed}
                     onChange={(e) => setBookForm({ ...bookForm, borrowed: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 text-xs font-medium mt-1"
+                    className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-medium mt-1 outline-none focus:border-[var(--accent-primary)]"
                     placeholder="0 or Borrower Name"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Description</label>
+                  <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Description</label>
                   <textarea
                     rows={3}
                     value={bookForm.description}
                     onChange={(e) => setBookForm({ ...bookForm, description: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 text-xs font-medium mt-1"
+                    className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-medium mt-1 outline-none focus:border-[var(--accent-primary)]"
                   />
                 </div>
               </div>
 
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <div className="flex justify-end gap-2.5 pt-4 border-t border-[var(--border-color)]">
               <button
                 onClick={() => setEditBookModal(null)}
-                className="px-5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50"
+                className="px-4 py-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-secondary)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveBook}
-                className="px-6 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-extrabold shadow-lg shadow-rose-500/20"
+                className="px-5 py-2 rounded-md bg-[#337ab7] hover:bg-[#286090] text-white text-xs font-semibold cursor-pointer"
               >
                 Save Changes
               </button>
@@ -1469,34 +1473,34 @@ export default function AdminPanel() {
 
       {/* ================= ADD SUX COPY MODAL ================= */}
       {suxModal && (
-        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-gray-100">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-elevated)] text-[var(--text-primary)] rounded-lg max-w-lg w-full p-6 shadow-2xl border border-[var(--border-color)]">
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-[var(--border-color)]">
               <div>
-                <h3 className="text-xl font-black text-gray-900 font-[Outfit]">+ Add SUX Copy to Catalog</h3>
-                <p className="text-xs text-gray-400">Register duplicate copy for existing title</p>
+                <h3 className="text-lg font-bold text-[var(--text-primary)]">+ Add SUX Copy to Catalog</h3>
+                <p className="text-xs text-[var(--text-secondary)]">Register duplicate copy for existing title</p>
               </div>
-              <button onClick={() => setSuxModal(null)} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100">
+              <button onClick={() => setSuxModal(null)} className="p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-2xl mb-6 flex items-center gap-4 border border-gray-100">
+            <div className="bg-[var(--bg-secondary)] p-3.5 rounded-lg mb-5 flex items-center gap-4 border border-[var(--border-color)]">
               <img
                 src={suxForm.baseBook.image || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200'}
                 alt="Book"
-                className="w-12 h-16 object-cover rounded-xl border border-gray-200 shadow-xs shrink-0"
+                className="w-11 h-15 object-cover rounded border border-[var(--border-color)] shrink-0"
               />
               <div>
-                <h4 className="font-bold text-gray-900 text-xs">{suxForm.baseBook.name}</h4>
-                <p className="text-[11px] text-gray-500 font-medium">Author: {suxForm.baseBook.author}</p>
-                <p className="text-[10px] text-blue-600 font-mono font-bold">Base ISBN: {suxForm.baseIsbn}</p>
+                <h4 className="font-bold text-[var(--text-primary)] text-xs">{suxForm.baseBook.name}</h4>
+                <p className="text-[11px] text-[#3b9c88] font-medium">Author: {suxForm.baseBook.author}</p>
+                <p className="text-[10px] text-[#337ab7] font-mono font-bold">Base ISBN: {suxForm.baseIsbn}</p>
               </div>
             </div>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
+                <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">
                   Copy Suffix Codes (e.g. "02", "03", or range "2-5")
                 </label>
                 <div className="flex gap-2 mt-1">
@@ -1505,7 +1509,7 @@ export default function AdminPanel() {
                     value={suxForm.suxInput}
                     onChange={(e) => setSuxForm({ ...suxForm, suxInput: e.target.value })}
                     placeholder="Type suffix e.g. 02..."
-                    className="flex-1 p-3 rounded-xl border border-gray-200 text-xs font-mono font-bold"
+                    className="flex-1 p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-mono font-semibold outline-none focus:border-[var(--accent-primary)]"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -1515,7 +1519,7 @@ export default function AdminPanel() {
                   />
                   <button
                     onClick={() => handleAddSuxTokens(suxForm.suxInput)}
-                    className="px-4 py-3 bg-blue-50 text-blue-600 font-bold rounded-xl text-xs hover:bg-blue-100"
+                    className="px-4 py-2.5 bg-[#337ab7] text-white font-semibold rounded-md text-xs hover:bg-[#286090] cursor-pointer"
                   >
                     + Add
                   </button>
@@ -1523,13 +1527,13 @@ export default function AdminPanel() {
               </div>
 
               {/* Suffix Tags Chips */}
-              <div className="flex flex-wrap gap-1.5 p-3 bg-gray-50 rounded-xl border border-gray-100 min-h-[60px]">
+              <div className="flex flex-wrap gap-1.5 p-3 bg-[var(--bg-secondary)] rounded-md border border-[var(--border-color)] min-h-[60px]">
                 {suxForm.suxList.map((code, idx) => (
-                  <span key={idx} className="bg-white border border-blue-200 text-blue-700 text-xs font-mono font-bold px-3 py-1 rounded-lg flex items-center gap-2 shadow-2xs">
+                  <span key={idx} className="bg-[var(--bg-elevated)] border border-[var(--border-color)] text-[#337ab7] text-xs font-mono font-semibold px-2.5 py-1 rounded flex items-center gap-2">
                     <span>{suxForm.baseIsbn}-{code}</span>
                     <button
                       onClick={() => setSuxForm(prev => ({ ...prev, suxList: prev.suxList.filter((_, i) => i !== idx) }))}
-                      className="text-gray-400 hover:text-rose-500 font-bold"
+                      className="text-[var(--text-secondary)] hover:text-rose-500 font-bold cursor-pointer"
                     >
                       ×
                     </button>
@@ -1538,16 +1542,16 @@ export default function AdminPanel() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <div className="flex justify-end gap-2.5 pt-4 border-t border-[var(--border-color)]">
               <button
                 onClick={() => setSuxModal(null)}
-                className="px-5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50"
+                className="px-4 py-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-secondary)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveSuxCopies}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold shadow-lg shadow-blue-600/20"
+                className="px-5 py-2 rounded-md bg-[#3b9c88] hover:bg-[#318473] text-white text-xs font-semibold cursor-pointer"
               >
                 Register {suxForm.suxList.length} SUX Copy/Copies
               </button>
@@ -1559,48 +1563,48 @@ export default function AdminPanel() {
 
       {/* ================= EDIT / CREATE USER MODAL ================= */}
       {(editUserModal || createUserModal) && (
-        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-gray-100">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-elevated)] text-[var(--text-primary)] rounded-lg max-w-md w-full p-6 shadow-2xl border border-[var(--border-color)]">
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-[var(--border-color)]">
               <div>
-                <h3 className="text-xl font-black text-gray-900 font-[Outfit]">
+                <h3 className="text-lg font-bold text-[var(--text-primary)]">
                   {createUserModal ? 'Create New User Account' : 'Edit User Profile'}
                 </h3>
-                <p className="text-xs text-gray-400">Manage reader credentials and system role</p>
+                <p className="text-xs text-[var(--text-secondary)]">Manage reader credentials and system role</p>
               </div>
-              <button onClick={() => { setEditUserModal(null); setCreateUserModal(false); }} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100">
+              <button onClick={() => { setEditUserModal(null); setCreateUserModal(false); }} className="p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Full Name</label>
+                <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Full Name</label>
                 <input
                   type="text"
                   value={userForm.name}
                   onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-gray-200 text-xs font-bold mt-1"
+                  className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-semibold mt-1 outline-none focus:border-[var(--accent-primary)]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Email Address</label>
+                <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Email Address</label>
                 <input
                   type="email"
                   value={userForm.email}
                   onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-gray-200 text-xs font-bold mt-1"
+                  className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-semibold mt-1 outline-none focus:border-[var(--accent-primary)]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">System Role</label>
+                  <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">System Role</label>
                   <select
                     value={userForm.role}
                     onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 text-xs font-bold mt-1 bg-white"
+                    className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-semibold mt-1 outline-none focus:border-[var(--accent-primary)]"
                   >
                     <option value="reader">Reader / Student</option>
                     <option value="admin">Librarian Admin</option>
@@ -1608,41 +1612,41 @@ export default function AdminPanel() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Student Class</label>
+                  <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Student Class</label>
                   <input
                     type="text"
                     value={userForm.studentClass}
                     onChange={(e) => setUserForm({ ...userForm, studentClass: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 text-xs font-bold mt-1"
+                    className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-semibold mt-1 outline-none focus:border-[var(--accent-primary)]"
                     placeholder="e.g. 10-A"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
+                <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">
                   {createUserModal ? 'Set Password' : 'Reset Password (optional)'}
                 </label>
                 <input
                   type="password"
                   value={userForm.password}
                   onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-gray-200 text-xs font-bold mt-1"
+                  className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-semibold mt-1 outline-none focus:border-[var(--accent-primary)]"
                   placeholder={createUserModal ? 'Password...' : 'Leave blank to keep unchanged'}
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <div className="flex justify-end gap-2.5 pt-4 border-t border-[var(--border-color)]">
               <button
                 onClick={() => { setEditUserModal(null); setCreateUserModal(false); }}
-                className="px-5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50"
+                className="px-4 py-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-secondary)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={createUserModal ? handleSaveCreateUser : handleSaveUser}
-                className="px-6 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-extrabold shadow-lg shadow-rose-500/20"
+                className="px-5 py-2 rounded-md bg-[#337ab7] hover:bg-[#286090] text-white text-xs font-semibold cursor-pointer"
               >
                 {createUserModal ? 'Create Account' : 'Save Changes'}
               </button>

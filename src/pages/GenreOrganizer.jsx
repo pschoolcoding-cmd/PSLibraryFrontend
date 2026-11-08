@@ -248,15 +248,15 @@ export default function GenreOrganizer() {
               <span className="bg-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] px-3 py-1 rounded-full border border-indigo-500/30 font-[Outfit]">
                 AI Metadata Studio
               </span>
-              <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border border-emerald-500/30 font-[Outfit]">
+              <span className="bg-emerald-500/15 text-emerald-500 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded border border-emerald-500/30">
                 Batch Size: 10
               </span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-black italic tracking-tight uppercase font-[Outfit] text-white flex items-center gap-3">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-2.5">
               Genre Normalizer & AI Classifier
-              <Sparkles className="w-7 h-7 text-indigo-400 animate-pulse" />
+              <Sparkles className="w-6 h-6 text-[#337ab7]" />
             </h1>
-            <p className="text-gray-400 text-xs md:text-sm max-w-2xl">
+            <p className="text-[var(--text-secondary)] text-xs md:text-sm max-w-2xl">
               Consolidate duplicate & wild admin hashtags (e.g. "children", "Kids", "children fantasy") into clean canonical master genres (~20 tags). Automatically processes 10 books per request batch with state checkpointing to pause & resume anytime.
             </p>
           </div>
@@ -264,9 +264,9 @@ export default function GenreOrganizer() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowKeyInput(!showKeyInput)}
-              className="bg-gray-800/80 hover:bg-gray-700 text-gray-200 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border border-gray-700 flex items-center gap-2 cursor-pointer"
+              className="bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] px-3.5 py-2 rounded-md text-xs font-semibold transition-colors border border-[var(--border-color)] flex items-center gap-2 cursor-pointer"
             >
-              <Key className="w-4 h-4 text-indigo-400" />
+              <Key className="w-4 h-4 text-[#337ab7]" />
               {apiKey ? 'Session Key Configured' : 'Server Key Active'}
             </button>
           </div>
@@ -274,18 +274,18 @@ export default function GenreOrganizer() {
 
         {/* API Key Modal / Drawer */}
         {showKeyInput && (
-          <div className="bg-indigo-950/40 border border-indigo-500/40 p-6 rounded-3xl backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-top-4">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-5 rounded-lg shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Key className="w-4 h-4 text-indigo-400" />
-                <h3 className="text-sm font-black uppercase tracking-wider font-[Outfit] text-indigo-300">
+                <Key className="w-4 h-4 text-[#337ab7]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
                   Google Gemini API Key Setup
                 </h3>
               </div>
-              <button onClick={() => setShowKeyInput(false)} className="text-xs text-gray-400 hover:text-white">✕</button>
+              <button onClick={() => setShowKeyInput(false)} className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer">✕</button>
             </div>
-            <p className="text-xs text-gray-300 mb-4">
-              The server uses its private <code className="bg-black/50 px-1.5 py-0.5 rounded text-indigo-300">GEMINI_API_KEY</code> by default. Optionally enter a different Gemini API key for this browser session only; it is not saved.
+            <p className="text-xs text-[var(--text-secondary)] mb-4">
+              The server uses its private <code className="bg-[var(--bg-secondary)] border border-[var(--border-color)] px-1.5 py-0.5 rounded text-[#337ab7]">GEMINI_API_KEY</code> by default. Optionally enter a different Gemini API key for this browser session only; it is not saved.
             </p>
             <div className="flex items-center gap-3">
               <input
@@ -293,11 +293,11 @@ export default function GenreOrganizer() {
                 placeholder="AIzaSy..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="flex-1 bg-black/60 border border-indigo-500/30 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-indigo-400 font-mono"
+                className="flex-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-md px-3.5 py-2 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)] font-mono"
               />
               <button
                 onClick={() => saveApiKey(apiKey)}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-wider px-5 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-600/30 cursor-pointer"
+                className="bg-[#337ab7] hover:bg-[#286090] text-white text-xs font-semibold uppercase tracking-wider px-4 py-2 rounded-md transition-colors cursor-pointer"
               >
                 Save Key
               </button>
@@ -309,81 +309,81 @@ export default function GenreOrganizer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* Total Books */}
-          <div className="bg-gray-900/40 border border-gray-800/80 p-5 rounded-2xl backdrop-blur-md">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-5 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Library Books</span>
-              <BookOpen className="w-4 h-4 text-blue-400" />
+              <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Total Library Books</span>
+              <BookOpen className="w-4 h-4 text-[#337ab7]" />
             </div>
-            <p className="text-3xl font-black font-[Outfit] text-white">{totalBooks}</p>
-            <p className="text-[11px] text-gray-500 mt-1">Catalog items analyzed</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)]">{totalBooks}</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-1">Catalog items analyzed</p>
           </div>
 
           {/* Organized Progress */}
-          <div className="bg-gray-900/40 border border-gray-800/80 p-5 rounded-2xl backdrop-blur-md">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-5 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Organized Progress</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Organized Progress</span>
+              <CheckCircle2 className="w-4 h-4 text-[#3b9c88]" />
             </div>
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-black font-[Outfit] text-emerald-400">{organizedCount}</p>
-              <span className="text-xs text-gray-400 font-bold">/ {totalBooks} ({progressPercent}%)</span>
+              <p className="text-2xl font-bold text-[#3b9c88]">{organizedCount}</p>
+              <span className="text-xs text-[var(--text-secondary)] font-semibold">/ {totalBooks} ({progressPercent}%)</span>
             </div>
             {/* Progress bar */}
-            <div className="w-full bg-gray-800 h-2 rounded-full mt-3 overflow-hidden">
+            <div className="w-full bg-[var(--bg-secondary)] h-2 rounded-full mt-3 overflow-hidden border border-[var(--border-color)]">
               <div 
-                className="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full transition-all duration-500"
+                className="bg-[#3b9c88] h-full transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
           </div>
 
           {/* Master Genres Count */}
-          <div className="bg-gray-900/40 border border-gray-800/80 p-5 rounded-2xl backdrop-blur-md">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-5 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Master Canonical Genres</span>
-              <Layers className="w-4 h-4 text-indigo-400" />
+              <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Master Canonical Genres</span>
+              <Layers className="w-4 h-4 text-[#337ab7]" />
             </div>
-            <p className="text-3xl font-black font-[Outfit] text-indigo-400">{masterGenres.length}</p>
-            <p className="text-[11px] text-gray-500 mt-1">Target ~20 non-overlapping tags</p>
+            <p className="text-2xl font-bold text-[#337ab7]">{masterGenres.length}</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-1">Target ~20 non-overlapping tags</p>
           </div>
 
           {/* Organizer Status */}
-          <div className="bg-gray-900/40 border border-gray-800/80 p-5 rounded-2xl backdrop-blur-md">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-5 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Batch State</span>
-              <Clock className="w-4 h-4 text-purple-400" />
+              <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Batch State</span>
+              <Clock className="w-4 h-4 text-[#3b9c88]" />
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`w-2.5 h-2.5 rounded-full ${isRunning ? 'bg-emerald-400 animate-ping' : 'bg-gray-500'}`} />
-              <p className="text-lg font-black font-[Outfit] text-white">
+              <span className={`w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-500 animate-ping' : 'bg-[var(--text-muted)]'}`} />
+              <p className="text-base font-bold text-[var(--text-primary)]">
                 {isRunning ? 'Processing Batch...' : (progressPercent === 100 ? 'Catalog Organized' : 'Ready / Paused')}
               </p>
             </div>
-            <p className="text-[11px] text-gray-400 mt-2 truncate font-mono">{currentActionMsg || 'Checkpoint active'}</p>
+            <p className="text-[11px] text-[var(--text-secondary)] mt-2 truncate font-mono">{currentActionMsg || 'Checkpoint active'}</p>
           </div>
 
         </div>
 
         {/* Master Canonical Genres Palette */}
-        <div className="bg-gray-900/40 border border-gray-800/80 p-6 md:p-8 rounded-3xl backdrop-blur-xl shadow-2xl space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-800/80 pb-4">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-6 rounded-lg space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[var(--border-color)] pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <Tag className="w-4 h-4 text-indigo-400" />
-                <h2 className="text-lg font-black uppercase tracking-wider font-[Outfit] text-white">
+                <Tag className="w-4 h-4 text-[#337ab7]" />
+                <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-primary)]">
                   Master Canonical Genre List ({masterGenres.length})
                 </h2>
               </div>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
                 Admins should tag new books using these standardized master genres to prevent category inflation!
               </p>
             </div>
 
             <button
               onClick={() => setIsEditingMaster(!isEditingMaster)}
-              className="bg-indigo-600/10 border border-indigo-500/30 hover:bg-indigo-600/20 text-indigo-300 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+              className="bg-[var(--bg-secondary)] border border-[var(--border-color)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] px-3.5 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
             >
-              <Edit3 className="w-3.5 h-3.5" />
+              <Edit3 className="w-3.5 h-3.5 text-[#337ab7]" />
               {isEditingMaster ? 'Cancel Edit' : 'Edit Canonical List'}
             </button>
           </div>
@@ -394,28 +394,28 @@ export default function GenreOrganizer() {
               {masterGenres.map((g, idx) => (
                 <span
                   key={`${g}-${idx}`}
-                  className="bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-sm group font-mono"
+                  className="bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] font-semibold text-xs px-3 py-1.5 rounded-md flex items-center gap-1.5 font-mono"
                 >
-                  <span className="text-[10px] text-indigo-500">#</span>
+                  <span className="text-[10px] text-[#3b9c88] font-bold">#</span>
                   {g}
                 </span>
               ))}
               {masterGenres.length === 0 && (
-                <p className="text-xs text-gray-500 italic">No master genres initialized yet. Run batch to synthesize.</p>
+                <p className="text-xs text-[var(--text-muted)] italic">No master genres initialized yet. Run batch to synthesize.</p>
               )}
             </div>
           ) : (
             <div className="space-y-3 pt-2">
-              <p className="text-xs text-gray-400">Comma-separated list of canonical master genres (~20 total):</p>
+              <p className="text-xs text-[var(--text-secondary)]">Comma-separated list of canonical master genres (~20 total):</p>
               <textarea
                 value={masterGenresInput}
                 onChange={(e) => setMasterGenresInput(e.target.value)}
-                className="w-full h-28 bg-black/60 border border-indigo-500/30 rounded-2xl p-4 text-xs font-mono text-indigo-200 outline-none focus:border-indigo-400"
+                className="w-full h-28 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-md p-3.5 text-xs font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
               />
               <div className="flex justify-end gap-2">
                 <button
                   onClick={handleSaveMasterGenres}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+                  className="bg-[#337ab7] hover:bg-[#286090] text-white px-4 py-2 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Save Master List
                 </button>
@@ -425,26 +425,26 @@ export default function GenreOrganizer() {
         </div>
 
         {/* Control Center & Batch Execution Buttons */}
-        <div className="bg-gray-900/40 border border-gray-800/80 p-6 md:p-8 rounded-3xl backdrop-blur-xl shadow-2xl space-y-6">
-          <div className="flex items-center justify-between border-b border-gray-800/80 pb-4">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-6 rounded-lg space-y-5">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
             <div>
-              <h2 className="text-lg font-black uppercase tracking-wider font-[Outfit] text-white flex items-center gap-2">
-                <ListFilter className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2">
+                <ListFilter className="w-4 h-4 text-[#3b9c88]" />
                 AI Batch Processing Control Center
               </h2>
-              <p className="text-xs text-gray-400 mt-1">
-                Executes **10 books per request**. State is automatically saved to MongoDB after each batch.
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                Executes 10 books per request. State is automatically saved to MongoDB after each batch.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3">
             {/* Auto-Run All Batches */}
             {!isRunning ? (
               <button
                 onClick={handleStartAutoRun}
                 disabled={progressPercent === 100}
-                className={`bg-gradient-to-r from-emerald-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-wider text-xs shadow-xl shadow-emerald-600/20 transition-all flex items-center gap-2.5 cursor-pointer active:scale-95 ${progressPercent === 100 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`bg-[#3b9c88] hover:bg-[#318473] text-white px-5 py-2.5 rounded-md font-semibold uppercase tracking-wider text-xs transition-colors flex items-center gap-2 cursor-pointer ${progressPercent === 100 ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Play className="w-4 h-4 fill-current" />
                 Auto-Organize All (10 Books / Request)
@@ -452,7 +452,7 @@ export default function GenreOrganizer() {
             ) : (
               <button
                 onClick={handlePauseAutoRun}
-                className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-wider text-xs shadow-xl shadow-amber-600/20 transition-all flex items-center gap-2.5 cursor-pointer active:scale-95 animate-pulse"
+                className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-md font-semibold uppercase tracking-wider text-xs transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <Pause className="w-4 h-4 fill-current" />
                 Pause Auto-Run
@@ -463,9 +463,9 @@ export default function GenreOrganizer() {
             <button
               onClick={handleRunSingleBatch}
               disabled={isRunning || progressPercent === 100}
-              className="bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 px-5 py-4 rounded-2xl font-extrabold uppercase tracking-wider text-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+              className="bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] border border-[var(--border-color)] px-4 py-2.5 rounded-md font-semibold uppercase tracking-wider text-xs transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <Sparkles className="w-4 h-4 text-indigo-400" />
+              <Sparkles className="w-4 h-4 text-[#337ab7]" />
               Organize Next 10 Books (Single Batch)
             </button>
 
@@ -473,7 +473,7 @@ export default function GenreOrganizer() {
             <button
               onClick={handleResetCheckpoint}
               disabled={isRunning}
-              className="bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 px-4 py-4 rounded-2xl font-bold uppercase tracking-wider text-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 ml-auto"
+              className="bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-500 px-3.5 py-2.5 rounded-md font-semibold uppercase tracking-wider text-xs transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 ml-auto"
             >
               <RotateCcw className="w-4 h-4" />
               Reset Checkpoint
@@ -481,8 +481,8 @@ export default function GenreOrganizer() {
           </div>
 
           {currentActionMsg && (
-            <div className="bg-black/50 border border-indigo-500/30 p-4 rounded-2xl text-xs font-mono text-indigo-300 flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3.5 rounded-md text-xs font-mono text-[#337ab7] flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-[#337ab7] animate-ping" />
               <span>{currentActionMsg}</span>
             </div>
           )}
@@ -490,10 +490,10 @@ export default function GenreOrganizer() {
 
         {/* Recent Batch Output Table */}
         {lastBatchResults.length > 0 && (
-          <div className="bg-gray-900/40 border border-gray-800/80 p-6 md:p-8 rounded-3xl backdrop-blur-xl shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-800/80 pb-4">
-              <h2 className="text-lg font-black uppercase tracking-wider font-[Outfit] text-white flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-6 rounded-lg space-y-4">
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#3b9c88]" />
                 Latest Batch Results ({lastBatchResults.length} Books Normalized)
               </h2>
             </div>
@@ -501,40 +501,40 @@ export default function GenreOrganizer() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-gray-800/80 text-[10px] uppercase tracking-widest text-gray-500">
+                  <tr className="border-b border-[var(--border-color)] text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
                     <th className="py-3 px-4">Book Title & BID</th>
                     <th className="py-3 px-4">Original Raw Admin Genres</th>
                     <th className="py-3 px-4"></th>
                     <th className="py-3 px-4">AI Normalized Master Genres</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800/40 text-xs">
+                <tbody className="divide-y divide-[var(--border-color)] text-xs">
                   {lastBatchResults.map((item, i) => (
-                    <tr key={item.id || i} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-white">
+                    <tr key={item.id || i} className="hover:bg-[var(--bg-hover)] transition-colors">
+                      <td className="py-3 px-4 font-bold text-[var(--text-primary)]">
                         <div>{item.title}</div>
-                        <div className="text-[10px] font-mono text-gray-500">BID: {item.bid}</div>
+                        <div className="text-[10px] font-mono text-[var(--text-muted)]">BID: {item.bid}</div>
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-4">
                         <div className="flex flex-wrap gap-1">
                           {item.oldGenres && item.oldGenres.length > 0 ? (
                             item.oldGenres.map((og, idx) => (
-                              <span key={idx} className="bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[11px] px-2 py-0.5 rounded-md font-mono">
+                              <span key={idx} className="bg-rose-500/10 text-rose-500 border border-rose-500/20 text-[11px] px-2 py-0.5 rounded font-mono">
                                 #{og}
                               </span>
                             ))
                           ) : (
-                            <span className="text-gray-600 italic">None</span>
+                            <span className="text-[var(--text-muted)] italic">None</span>
                           )}
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-gray-600">
+                      <td className="py-3 px-4 text-[var(--text-muted)]">
                         <ArrowRight className="w-4 h-4" />
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-4">
                         <div className="flex flex-wrap gap-1">
                           {item.newGenres && item.newGenres.map((ng, idx) => (
-                            <span key={idx} className="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[11px] px-2 py-0.5 rounded-md font-mono font-bold">
+                            <span key={idx} className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[11px] px-2 py-0.5 rounded font-mono font-semibold">
                               #{ng}
                             </span>
                           ))}
@@ -550,20 +550,20 @@ export default function GenreOrganizer() {
 
         {/* Audit Execution Logs Feed */}
         {status?.logs && status.logs.length > 0 && (
-          <div className="bg-gray-900/40 border border-gray-800/80 p-6 md:p-8 rounded-3xl backdrop-blur-xl shadow-2xl space-y-4">
-            <h2 className="text-lg font-black uppercase tracking-wider font-[Outfit] text-white flex items-center gap-2 border-b border-gray-800/80 pb-4">
-              <Clock className="w-4 h-4 text-purple-400" />
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-6 rounded-lg space-y-4">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2 border-b border-[var(--border-color)] pb-4">
+              <Clock className="w-4 h-4 text-[#337ab7]" />
               Audit Execution Logs ({status.logs.length})
             </h2>
 
             <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
               {status.logs.map((log, idx) => (
-                <div key={idx} className="bg-black/40 border border-gray-800/80 p-3 rounded-xl text-xs font-mono flex items-center justify-between text-gray-300">
+                <div key={idx} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3 rounded-md text-xs font-mono flex items-center justify-between text-[var(--text-primary)]">
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#337ab7]" />
                     <span>{log.message}</span>
                   </div>
-                  <span className="text-[10px] text-gray-500 shrink-0">
+                  <span className="text-[10px] text-[var(--text-muted)] shrink-0">
                     {new Date(log.timestamp).toLocaleTimeString()}
                   </span>
                 </div>

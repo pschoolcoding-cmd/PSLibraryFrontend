@@ -1,0 +1,676 @@
+/* ==========================================================================
+   Global Theme Engine — Day Mode (White / Crisp Slate) & Night Mode (Dark Navy)
+   ========================================================================== */
+
+:root,
+[data-theme="day"],
+.theme-day,
+.light {
+  color-scheme: light;
+
+  /* App & Page Backgrounds */
+  --bg-app: #FFFFFF;
+  --bg-page: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-elevated: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #F8FAFC;
+  --bg-navbar: rgba(255, 255, 255, 0.96);
+  --bg-modal: #FFFFFF;
+  --bg-input: #FFFFFF;
+  --bg-hover: #F1F5F9;
+  --bg-subtle-hover: #F8FAFC;
+  --bg-active: #E2E8F0;
+  --bg-table-header: #F8FAFC;
+  --bg-table-row-hover: #F1F5F9;
+
+  /* Borders & Dividers (Subtle neutral gray #E2E8F0) */
+  --border-color: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --focus-ring: #2B6CB0;
+
+  /* Typography (Dark slate #0F172A & Slate gray #475569) */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+
+  /* Classic Flat Library Accents (Muted Slate-Blue & Academic Teal) */
+  --accent-primary: #2B6CB0;
+  --accent-primary-hover: #2C5282;
+  --accent-primary-subtle: #EBF8FF;
+  --accent-teal: #3B9C88;
+  --accent-teal-hover: #2E7D6D;
+  --accent-teal-subtle: #E6FFFA;
+
+  /* Status & Availability Badges */
+  --badge-available-bg: #ECFDF5;
+  --badge-available-text: #047857;
+  --badge-available-border: #A7F3D0;
+
+  --badge-borrowed-bg: #FFFBEB;
+  --badge-borrowed-text: #B45309;
+  --badge-borrowed-border: #FDE68A;
+
+  --badge-info-bg: #F8FAFC;
+  --badge-info-text: #475569;
+  --badge-info-border: #E2E8F0;
+
+  --danger-bg: #FEF2F2;
+  --danger-text: #B91C1C;
+  --danger-border: #FECACA;
+
+  /* Star Rating */
+  --star-filled: #475569;
+  --star-empty: #CBD5E1;
+
+  /* Shadows */
+  --cover-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  --surface-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="night"],
+.theme-night,
+.dark {
+  color-scheme: dark;
+
+  /* App & Page Backgrounds (Deep Navy #0B1329 / #0F172A) */
+  --bg-app: #0B1329;
+  --bg-page: #0B1329;
+  --bg-secondary: #0F172A;
+  /* Elevated Surfaces: Sidebars, Cards, Modals, Tables (#1E293B) */
+  --bg-elevated: #1E293B;
+  --bg-card: #1E293B;
+  --bg-sidebar: #1E293B;
+  --bg-navbar: rgba(15, 23, 42, 0.96);
+  --bg-modal: #1E293B;
+  --bg-input: #1E293B;
+  --bg-hover: #334155;
+  --bg-subtle-hover: #263449;
+  --bg-active: #334155;
+  --bg-table-header: #162032;
+  --bg-table-row-hover: #263449;
+
+  /* Borders & Dividers (Clean, muted slate #334155) */
+  --border-color: #334155;
+  --border-strong: #475569;
+  --focus-ring: #38B2AC;
+
+  /* Typography (Off-white #F8FAFC & Soft blue-gray #94A3B8) */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  /* Accents */
+  --accent-primary: #3B82F6;
+  --accent-primary-hover: #2563EB;
+  --accent-primary-subtle: rgba(59, 130, 246, 0.15);
+  --accent-teal: #38B2AC;
+  --accent-teal-hover: #319795;
+  --accent-teal-subtle: rgba(56, 178, 172, 0.15);
+
+  /* Status & Availability Badges */
+  --badge-available-bg: rgba(16, 185, 129, 0.15);
+  --badge-available-text: #34D399;
+  --badge-available-border: rgba(16, 185, 129, 0.35);
+
+  --badge-borrowed-bg: rgba(245, 158, 11, 0.15);
+  --badge-borrowed-text: #FBBF24;
+  --badge-borrowed-border: rgba(245, 158, 11, 0.35);
+
+  --badge-info-bg: #0F172A;
+  --badge-info-text: #94A3B8;
+  --badge-info-border: #334155;
+
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --danger-text: #F87171;
+  --danger-border: rgba(239, 68, 68, 0.35);
+
+  /* Star Rating */
+  --star-filled: #FBBF24;
+  --star-empty: #475569;
+
+  /* Shadows */
+  --cover-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  --surface-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   Global Base Elements & Semantic Theme Classes
+   ========================================================================== */
+
+html,
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.cw-page,
+.theme-page {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.cw-secondary-bg,
+.theme-secondary-bg {
+  background-color: var(--bg-secondary);
+}
+
+.cw-surface,
+.theme-card,
+.theme-surface {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: var(--surface-shadow);
+}
+
+.cw-sidebar,
+.theme-sidebar {
+  background-color: var(--bg-sidebar);
+  color: var(--text-primary);
+  border-right: 1px solid var(--border-color);
+}
+
+.cw-navbar,
+.theme-navbar {
+  background-color: var(--bg-navbar);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cw-border,
+.theme-border {
+  border-color: var(--border-color);
+}
+
+.cw-divider,
+.theme-divider {
+  border-top: 1px solid var(--border-color);
+}
+
+.cw-text-primary,
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.cw-text-secondary,
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.cw-text-muted,
+.theme-text-muted {
+  color: var(--text-muted);
+}
+
+.cw-link,
+.theme-link {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.cw-link:hover,
+.theme-link:hover {
+  color: var(--accent-primary-hover);
+  text-decoration: underline;
+}
+
+.cw-link-teal,
+.theme-link-teal {
+  color: var(--accent-teal);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.cw-link-teal:hover,
+.theme-link-teal:hover {
+  color: var(--accent-teal-hover);
+  text-decoration: underline;
+}
+
+/* Inputs & Controls: Crisp 1px borders; calm focus outlines without neon halos */
+.cw-input,
+.cw-select,
+.cw-textarea,
+.theme-input {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  box-shadow: none !important;
+}
+
+.cw-input::placeholder,
+.cw-textarea::placeholder,
+.theme-input::placeholder {
+  color: var(--text-muted);
+}
+
+.cw-input:focus,
+.cw-select:focus,
+.cw-textarea:focus,
+.theme-input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-primary) !important;
+}
+
+/* Utilitarian Library Buttons */
+.cw-btn,
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.cw-btn:hover:not(:disabled),
+.theme-btn:hover:not(:disabled) {
+  background-color: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.cw-btn:disabled,
+.theme-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cw-btn-primary,
+.theme-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  background-color: var(--accent-primary);
+  color: #FFFFFF;
+  border: 1px solid var(--accent-primary-hover);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cw-btn-primary:hover:not(:disabled),
+.theme-btn-primary:hover:not(:disabled) {
+  background-color: var(--accent-primary-hover);
+}
+
+.cw-btn-teal,
+.theme-btn-teal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  background-color: var(--accent-teal);
+  color: #FFFFFF;
+  border: 1px solid var(--accent-teal-hover);
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cw-btn-teal:hover:not(:disabled),
+.theme-btn-teal:hover:not(:disabled) {
+  background-color: var(--accent-teal-hover);
+}
+
+.cw-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Sort Toolbar Icon Button */
+.cw-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background-color: var(--accent-primary);
+  color: #FFFFFF;
+  border: 1px solid var(--accent-primary-hover);
+  border-radius: 4px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.cw-sort-btn:hover {
+  background-color: var(--accent-primary-hover);
+}
+
+.cw-sort-btn.is-active {
+  background-color: #1E3A5F;
+  border-color: #0F172A;
+}
+
+[data-theme="night"] .cw-sort-btn.is-active {
+  background-color: #1D4ED8;
+  border-color: #93C5FD;
+}
+
+/* Badges & Status Pills */
+.cw-badge-available {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: var(--badge-available-bg);
+  color: var(--badge-available-text);
+  border: 1px solid var(--badge-available-border);
+  border-radius: 4px;
+  padding: 0.125rem 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.cw-badge-borrowed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: var(--badge-borrowed-bg);
+  color: var(--badge-borrowed-text);
+  border: 1px solid var(--badge-borrowed-border);
+  border-radius: 4px;
+  padding: 0.125rem 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.cw-badge-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: var(--badge-info-bg);
+  color: var(--badge-info-text);
+  border: 1px solid var(--badge-info-border);
+  border-radius: 4px;
+  padding: 0.125rem 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+/* Dense Utilitarian Tables */
+.cw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.cw-table th {
+  background-color: var(--bg-table-header);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border-strong);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.cw-table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.cw-table tbody tr:hover {
+  background-color: var(--bg-table-row-hover);
+}
+
+/* ==========================================================================
+   Global Shape & Glow Normalization (No Too-Roundy Boxes or Neon Lights)
+   Matches Catalogue Panel & Admin Panel crisp geometry across all pages
+   ========================================================================== */
+
+/* Normalize overly rounded containers to crisp 6px-8px library geometry */
+.rounded-\[3rem\],
+.rounded-\[2\.5rem\],
+.rounded-\[2rem\],
+.rounded-3xl {
+  border-radius: 8px !important;
+}
+
+.rounded-2xl,
+.rounded-xl {
+  border-radius: 6px !important;
+}
+
+/* Hide decorative neon background blur spheres */
+.blur-\[120px\],
+.blur-\[140px\],
+.blur-\[150px\] {
+  display: none !important;
+}
+
+/* Remove neon colored glows and heavy shadows */
+.shadow-2xl,
+.shadow-xl,
+.shadow-lg {
+  box-shadow: var(--surface-shadow) !important;
+}
+
+/* ==========================================================================
+   Automatic Page Theme Adaptation Across Legacy Utility Classes
+   ========================================================================== */
+
+/* Night Mode: Map legacy dark/light surfaces to Deep Navy (#0B1329) & Slate-Blue (#1E293B) */
+[data-theme="night"] .bg-\[\#030303\],
+[data-theme="night"] .bg-\[\#030712\],
+[data-theme="night"] .bg-\[\#050505\],
+[data-theme="night"] .bg-\[\#060913\],
+[data-theme="night"] .bg-\[\#f3f4f8\],
+[data-theme="night"] .bg-\[\#f4f5f8\],
+[data-theme="night"] .bg-black {
+  background-color: var(--bg-app) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="night"] .bg-\[\#0b0b0e\],
+[data-theme="night"] .bg-\[\#0b0b0e\]\/80,
+[data-theme="night"] .bg-\[\#0b0b0e\]\/90,
+[data-theme="night"] .bg-\[\#0b101e\],
+[data-theme="night"] .bg-\[\#0d0d0d\],
+[data-theme="night"] .bg-\[\#0e0e12\],
+[data-theme="night"] .bg-\[\#0e1526\],
+[data-theme="night"] .bg-\[\#0f0f10\],
+[data-theme="night"] .bg-\[\#0f0f13\],
+[data-theme="night"] .bg-\[\#0f0f14\],
+[data-theme="night"] .bg-\[\#0f172a\],
+[data-theme="night"] .bg-\[\#121212\],
+[data-theme="night"] .bg-\[\#121217\],
+[data-theme="night"] .bg-\[\#fafbfe\],
+[data-theme="night"] .bg-white,
+[data-theme="night"] .bg-gray-900,
+[data-theme="night"] .bg-gray-900\/40,
+[data-theme="night"] .bg-gray-900\/50,
+[data-theme="night"] .bg-gray-900\/60,
+[data-theme="night"] .bg-neutral-950 {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="night"] .bg-\[\#121216\],
+[data-theme="night"] .bg-\[\#141418\],
+[data-theme="night"] .bg-\[\#141419\],
+[data-theme="night"] .bg-\[\#14141a\],
+[data-theme="night"] .bg-\[\#16161a\],
+[data-theme="night"] .bg-\[\#161f33\],
+[data-theme="night"] .bg-\[\#18181c\],
+[data-theme="night"] .bg-\[\#18181f\],
+[data-theme="night"] .bg-\[\#181820\],
+[data-theme="night"] .bg-\[\#f6f7fb\],
+[data-theme="night"] .bg-\[\#fbfcfd\],
+[data-theme="night"] .bg-gray-50,
+[data-theme="night"] .bg-gray-100,
+[data-theme="night"] .bg-black\/40,
+[data-theme="night"] .bg-black\/50,
+[data-theme="night"] .bg-black\/60 {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="night"] .border-gray-100,
+[data-theme="night"] .border-gray-200,
+[data-theme="night"] .border-gray-300,
+[data-theme="night"] .border-gray-700,
+[data-theme="night"] .border-gray-800,
+[data-theme="night"] .border-gray-800\/50,
+[data-theme="night"] .border-gray-800\/60,
+[data-theme="night"] .border-gray-800\/80,
+[data-theme="night"] .border-gray-850,
+[data-theme="night"] .border-gray-900,
+[data-theme="night"] .border-gray-950,
+[data-theme="night"] .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+[data-theme="night"] .divide-gray-800 > :not([hidden]) ~ :not([hidden]),
+[data-theme="night"] .divide-gray-800\/40 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="night"] .text-gray-700,
+[data-theme="night"] .text-gray-800,
+[data-theme="night"] .text-gray-900 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="night"] .text-gray-400,
+[data-theme="night"] .text-gray-500,
+[data-theme="night"] .text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+/* Day Mode: Map legacy dark surfaces to Crisp White (#FFFFFF) & Soft Slate (#F8FAFC) */
+[data-theme="day"] .bg-\[\#030303\],
+[data-theme="day"] .bg-\[\#030712\],
+[data-theme="day"] .bg-\[\#050505\],
+[data-theme="day"] .bg-\[\#060913\],
+[data-theme="day"] .bg-black {
+  background-color: var(--bg-app) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="day"] .bg-\[\#0b0b0e\],
+[data-theme="day"] .bg-\[\#0b0b0e\]\/80,
+[data-theme="day"] .bg-\[\#0b0b0e\]\/90,
+[data-theme="day"] .bg-\[\#0b101e\],
+[data-theme="day"] .bg-\[\#0d0d0d\],
+[data-theme="day"] .bg-\[\#0e0e12\],
+[data-theme="day"] .bg-\[\#0e1526\],
+[data-theme="day"] .bg-\[\#0f0f10\],
+[data-theme="day"] .bg-\[\#0f0f13\],
+[data-theme="day"] .bg-\[\#0f0f14\],
+[data-theme="day"] .bg-\[\#0f172a\],
+[data-theme="day"] .bg-\[\#121212\],
+[data-theme="day"] .bg-\[\#121217\],
+[data-theme="day"] .bg-gray-900,
+[data-theme="day"] .bg-gray-900\/30,
+[data-theme="day"] .bg-gray-900\/40,
+[data-theme="day"] .bg-gray-900\/50,
+[data-theme="day"] .bg-gray-900\/60,
+[data-theme="day"] .bg-neutral-950 {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="day"] .bg-\[\#121216\],
+[data-theme="day"] .bg-\[\#141418\],
+[data-theme="day"] .bg-\[\#141419\],
+[data-theme="day"] .bg-\[\#14141a\],
+[data-theme="day"] .bg-\[\#16161a\],
+[data-theme="day"] .bg-\[\#161f33\],
+[data-theme="day"] .bg-\[\#18181c\],
+[data-theme="day"] .bg-\[\#18181f\],
+[data-theme="day"] .bg-\[\#181820\],
+[data-theme="day"] .bg-gray-800,
+[data-theme="day"] .bg-gray-800\/50,
+[data-theme="day"] .bg-gray-800\/60,
+[data-theme="day"] .bg-gray-800\/70,
+[data-theme="day"] .bg-gray-800\/80,
+[data-theme="day"] .bg-black\/30,
+[data-theme="day"] .bg-black\/40,
+[data-theme="day"] .bg-black\/50,
+[data-theme="day"] .bg-black\/60 {
+  background-color: #FFFFFF !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="day"] .border-gray-700,
+[data-theme="day"] .border-gray-800,
+[data-theme="day"] .border-gray-800\/30,
+[data-theme="day"] .border-gray-800\/50,
+[data-theme="day"] .border-gray-800\/60,
+[data-theme="day"] .border-gray-800\/80,
+[data-theme="day"] .border-gray-850,
+[data-theme="day"] .border-gray-900,
+[data-theme="day"] .border-gray-950,
+[data-theme="day"] .divide-gray-800 > :not([hidden]) ~ :not([hidden]),
+[data-theme="day"] .divide-gray-800\/40 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="day"] .text-white,
+[data-theme="day"] .text-gray-100,
+[data-theme="day"] .text-gray-200,
+[data-theme="day"] .text-gray-300 {
+  color: var(--text-primary) !important;
+}
+
+/* Preserve white text on solid colored primary/accent/status buttons in Day Mode */
+[data-theme="day"] button.text-white,
+[data-theme="day"] a.text-white,
+[data-theme="day"] .bg-\[\#337ab7\].text-white,
+[data-theme="day"] .bg-\[\#23527c\].text-white,
+[data-theme="day"] .bg-\[\#2b6cb0\].text-white,
+[data-theme="day"] .bg-\[\#3b9c88\].text-white,
+[data-theme="day"] .bg-blue-600.text-white,
+[data-theme="day"] .bg-emerald-600.text-white,
+[data-theme="day"] .bg-rose-500.text-white,
+[data-theme="day"] .bg-rose-600.text-white,
+[data-theme="day"] .bg-amber-500.text-white,
+[data-theme="day"] .bg-indigo-600.text-white {
+  color: #FFFFFF !important;
+}
+
+[data-theme="day"] .text-gray-400,
+[data-theme="day"] .text-gray-500 {
+  color: var(--text-secondary) !important;
+}

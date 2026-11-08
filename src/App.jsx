@@ -2,6 +2,7 @@ import './App.css'
 import { Route, Routes } from "react-router-dom"
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { AuthProvider } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import Home from "./pages/Home"
 import Search from "./pages/Search"
 import AddBook from './pages/AddBook'
@@ -19,24 +20,27 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1089234567890
 function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <AuthProvider>
-        <div className='min-h-screen w-full bg-[#030303] text-white'>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/add" element={<AddBook />} />
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/admin/panel" element={<AdminPanel />} />
-            <Route path="/admin/genres" element={<GenreOrganizer />} />
-            <Route path="/genres" element={<GenreOrganizer />} />
-            <Route path="/book/:id" element={<Viewbook />} />
-            <Route path="/scan" element={<ScannerSearch />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/account" element={<AccountDashboard />} />
-          </Routes>
-        </div>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <div className="min-h-screen w-full bg-[var(--bg-app)] text-[var(--text-primary)] transition-colors duration-200">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/catalog" element={<Search />} />
+              <Route path="/add" element={<AddBook />} />
+              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin/panel" element={<AdminPanel />} />
+              <Route path="/admin/genres" element={<GenreOrganizer />} />
+              <Route path="/genres" element={<GenreOrganizer />} />
+              <Route path="/book/:id" element={<Viewbook />} />
+              <Route path="/scan" element={<ScannerSearch />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/account" element={<AccountDashboard />} />
+            </Routes>
+          </div>
+        </AuthProvider>
+      </ThemeProvider>
     </GoogleOAuthProvider>
   )
 }

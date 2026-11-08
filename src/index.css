@@ -1,20 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap');
 @import "tailwindcss";
+@import "./theme.css";
+
+@theme {
+  --color-app-bg: var(--bg-app);
+  --color-secondary-bg: var(--bg-secondary);
+  --color-elevated: var(--bg-elevated);
+  --color-sidebar: var(--bg-sidebar);
+  --color-navbar: var(--bg-navbar);
+  --color-input: var(--bg-input);
+  --color-border-subtle: var(--border-color);
+  --color-border-strong: var(--border-strong);
+  --color-text-main: var(--text-primary);
+  --color-text-sub: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent-blue: var(--accent-primary);
+  --color-accent-teal: var(--accent-teal);
+}
 
 @layer base {
-  :root {
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
-    --bg-dark: #050505;
-    --card-bg: #0f172a;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --accent: #8b5cf6;
-  }
-
   body {
-    background-color: var(--bg-dark);
-    color: var(--text-main);
+    background-color: var(--bg-app);
+    color: var(--text-primary);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
   }

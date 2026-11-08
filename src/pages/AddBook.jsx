@@ -599,46 +599,46 @@ const AddBook = () => {
                         ⏳
                     </div>
                     <div>
-                        <p className="font-extrabold uppercase tracking-wider text-xs font-[Outfit]">Subadmin Submission Queue</p>
-                        <p className="text-amber-300/80 text-xs mt-1">Your added book copies will be sent to the Admin Pending Approval queue for review before appearing in the public library catalog.</p>
+                        <p className="font-bold uppercase tracking-wider text-xs">Subadmin Submission Queue</p>
+                        <p className="text-amber-500 text-xs mt-1">Your added book copies will be sent to the Admin Pending Approval queue for review before appearing in the public library catalog.</p>
                     </div>
                 </div>
             )}
 
-            <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4'>
+            <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-5 border-b border-[var(--border-color)] gap-4'>
                 <div>
-                    <p className='text-blue-500 text-[10px] font-black uppercase tracking-[0.4em] mb-2 font-[Outfit]'>Administration</p>
-                    <h1 className='text-4xl font-black italic tracking-tighter uppercase font-[Outfit]'>New Catalog Entry</h1>
+                    <p className='text-[#3b9c88] text-[10px] font-bold uppercase tracking-widest mb-1'>Administration</p>
+                    <h1 className='text-2xl font-bold tracking-tight text-[var(--text-primary)]'>New Catalog Entry</h1>
                 </div>
-                <div className='bg-blue-600/10 text-blue-400 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest border border-blue-500/20'>
+                <div className='bg-[#337ab7]/15 text-[#337ab7] px-3 py-1.5 rounded-md text-[10px] font-bold tracking-wider border border-[#337ab7]/30'>
                     {isSubAdmin ? 'SUBADMIN INTAKE' : 'SECURE ADDITION'}
                 </div>
             </div>
 
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-12'>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
                 {/* Visual Section */}
-                <div className='space-y-6'>
-                    <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1'>Art Assets</label>
+                <div className='space-y-3'>
+                    <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Book Cover Art</label>
                     <div 
                         onDragOver={handleDragOver} 
                         onDrop={handleDrop} 
-                        className='relative aspect-[3/4] border-2 border-dashed border-gray-800 rounded-[2rem] hover:border-blue-500/50 transition-all duration-500 bg-black/40 flex flex-col items-center justify-center group overflow-hidden group'
+                        className='relative aspect-[3/4] border border-dashed border-[var(--border-color)] rounded-lg hover:border-[var(--accent-primary)] transition-colors bg-[var(--bg-secondary)] flex flex-col items-center justify-center group overflow-hidden'
                     >
                         {image ? (
                             <div className='relative w-full h-full'>
-                                <img src={image} alt="Preview" className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-105' />
-                                <div className='absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm'>
+                                <img src={image} alt="Preview" className='w-full h-full object-cover' />
+                                <div className='absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-xs'>
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); setImage(''); setUploadedImageUrl(''); setImageStatus(''); }}
-                                        className='bg-red-500 hover:bg-red-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transform hover:scale-110 transition-all'
+                                        className='bg-rose-600 hover:bg-rose-700 text-white w-11 h-11 rounded-md flex items-center justify-center shadow-lg transition-colors cursor-pointer'
                                     >
-                                        <span className='text-2xl font-black'>✕</span>
+                                        <span className='text-lg font-bold'>✕</span>
                                     </button>
                                 </div>
                                 {imageStatus === 'uploading' && (
-                                    <div className='absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-4'>
-                                        <div className='w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin'></div>
-                                        <p className='text-[10px] font-black text-blue-400 uppercase tracking-widest animate-pulse'>Uploading to Cloud...</p>
+                                    <div className='absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-3'>
+                                        <div className='w-9 h-9 border-3 border-[#337ab7]/30 border-t-[#337ab7] rounded-full animate-spin'></div>
+                                        <p className='text-[10px] font-bold text-white uppercase tracking-wider'>Uploading to Cloud...</p>
                                     </div>
                                 )}
                             </div>
@@ -650,44 +650,44 @@ const AddBook = () => {
                                     onChange={handleImageChange} 
                                     className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10'
                                 />
-                                <div className='text-6xl mb-4 grayscale opacity-20 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-110'>📸</div>
-                                <p className='text-gray-500 font-black text-[10px] uppercase tracking-widest group-hover:text-blue-400 transition-colors'>Drop selection here</p>
-                                <p className='text-gray-600 text-[8px] mt-2 italic font-mono'>supports: cloud-sync optimized formats</p>
+                                <div className='text-4xl mb-3 opacity-60'>📸</div>
+                                <p className='text-[var(--text-primary)] font-semibold text-xs'>Drop cover image or click to upload</p>
+                                <p className='text-[var(--text-muted)] text-[10px] mt-1 font-mono'>Supports JPG, PNG, WebP</p>
                             </>
                         )}
                     </div>
                 </div>
 
                 {/* Form Section */}
-                <div className='flex flex-col gap-6'>
-                    <div className='space-y-2'>
-                        <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1'>Title & Registry</label>
+                <div className='flex flex-col gap-5'>
+                    <div className='space-y-1.5'>
+                        <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Title & Registry</label>
                         <input 
                             type="text" 
                             placeholder="Volume Title" 
-                            className='w-full p-4 rounded-2xl bg-black/50 text-white border border-gray-800 focus:border-blue-500/50 outline-hidden transition-all font-bold placeholder:text-gray-700' 
+                            className='w-full p-3 rounded-md bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-semibold placeholder:text-[var(--text-muted)]' 
                             value={title} 
                             onChange={(e) => setTitle(e.target.value)} 
                         />
                     </div>
 
                     <div className='space-y-4'>
-                        <div id="isbn-reader" className={`w-full aspect-video bg-black rounded-2xl overflow-hidden border border-gray-800 shadow-inner ${isScanning ? 'block ring-2 ring-blue-500/20' : 'hidden'}`}></div>
+                        <div id="isbn-reader" className={`w-full aspect-video bg-black rounded-lg overflow-hidden border border-[var(--border-color)] ${isScanning ? 'block' : 'hidden'}`}></div>
                         <button 
                             type="button"
                             onClick={isScanning ? stopScanner : startScanner}
-                            className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all border ${isScanning ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-blue-600 text-white border-blue-500/50 shadow-xl shadow-blue-500/20 active:scale-95'}`}
+                            className={`w-full py-2.5 rounded-md font-semibold text-xs transition-colors border cursor-pointer ${isScanning ? 'bg-rose-500/15 border-rose-500/30 text-rose-500' : 'bg-[#337ab7] hover:bg-[#286090] text-white border-[#2e6da4]'}`}
                         >
                             {isScanning ? 'Deactivate Lens' : '📷 Optical ISBN Scan'}
                         </button>
 
-                        <div className='space-y-2'>
-                            <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1'>Base ISBN</label>
-                            <div className='bg-black/50 p-1.5 rounded-2xl border border-gray-800 focus-within:border-blue-500/40 transition-all shadow-inner'>
+                        <div className='space-y-1.5'>
+                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Base ISBN</label>
+                            <div className='bg-[var(--bg-input)] rounded-md border border-[var(--border-color)] focus-within:border-[var(--accent-primary)] transition-colors'>
                                 <input 
                                     type="text" 
                                     placeholder="e.g. 9780131103627" 
-                                    className='p-3 bg-transparent outline-none w-full font-mono text-sm tracking-widest border-none text-white placeholder:text-gray-700' 
+                                    className='p-3 bg-transparent outline-none w-full font-mono text-xs tracking-wider border-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]' 
                                     value={bookIdp1} 
                                     onChange={(e) => setBookIdp1(e.target.value)}
                                     onBlur={() => checkIsbnStatus()}
@@ -696,22 +696,22 @@ const AddBook = () => {
 
                             {/* ISBN Existence Status Indicator */}
                             {isbnChecking && (
-                                <div className="flex items-center gap-2 text-xs text-blue-400 font-medium px-1 py-1">
-                                    <div className="w-3.5 h-3.5 border-2 border-blue-400/20 border-t-blue-400 rounded-full animate-spin"></div>
+                                <div className="flex items-center gap-2 text-xs text-[#337ab7] font-medium px-1 py-1">
+                                    <div className="w-3.5 h-3.5 border-2 border-[#337ab7]/20 border-t-[#337ab7] rounded-full animate-spin"></div>
                                     Checking catalog for existing ISBN...
                                 </div>
                             )}
 
                             {isbnCheckResult && !isbnChecking && (
                                 isbnCheckResult.exists ? (
-                                    <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex flex-col gap-2 shadow-lg">
+                                    <div className="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 flex flex-col gap-2">
                                         <div className="flex items-start gap-2.5">
                                             <span className="text-base">⚠️</span>
                                             <div className="min-w-0 flex-1">
-                                                <p className="font-extrabold text-xs font-[Outfit] uppercase tracking-wider text-amber-400">
+                                                <p className="font-bold text-xs uppercase tracking-wider">
                                                     Book Already Registered ({isbnCheckResult.count} {isbnCheckResult.count === 1 ? 'copy' : 'copies'} in catalog)
                                                 </p>
-                                                <p className="text-xs text-amber-200/90 mt-0.5 font-medium truncate">
+                                                <p className="text-xs text-[var(--text-primary)] mt-0.5 font-medium truncate">
                                                     "{isbnCheckResult.book?.name}" {isbnCheckResult.book?.author ? `by ${isbnCheckResult.book.author}` : ''}
                                                 </p>
                                             </div>
@@ -719,13 +719,13 @@ const AddBook = () => {
                                         <button
                                             type="button"
                                             onClick={() => autofillExistingBook(isbnCheckResult.book)}
-                                            className="self-start bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-[11px] px-3.5 py-1.5 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5 mt-1"
+                                            className="self-start bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs px-3 py-1.5 rounded-md transition-colors cursor-pointer flex items-center gap-1.5 mt-1"
                                         >
                                             ⚡ Autofill Details from Existing Copy
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                                    <div className="p-2.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-semibold flex items-center gap-2">
                                         <span>✅</span>
                                         <span>New Book Title: No existing copies found with this ISBN in catalog.</span>
                                     </div>
@@ -733,18 +733,18 @@ const AddBook = () => {
                             )}
                         </div>
 
-                        <div className='space-y-2'>
-                            <div className='flex items-center justify-between ml-1'>
-                                <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest'>Copy Identifiers (SUX List)</label>
+                        <div className='space-y-1.5'>
+                            <div className='flex items-center justify-between'>
+                                <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Copy Identifiers (SUX List)</label>
                                 <div className='flex items-center gap-2'>
-                                    <span className='bg-blue-500/20 text-blue-400 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-blue-500/30 font-mono'>
+                                    <span className='bg-[#337ab7]/15 text-[#337ab7] text-[10px] font-bold px-2 py-0.5 rounded border border-[#337ab7]/30 font-mono'>
                                         {suxList.length} {suxList.length === 1 ? 'Copy' : 'Copies'}
                                     </span>
                                     {suxList.length > 0 && (
                                         <button 
                                             type="button" 
                                             onClick={() => setSuxList([])} 
-                                            className='text-[10px] text-gray-500 hover:text-red-400 font-bold uppercase transition-colors'
+                                            className='text-[10px] text-[var(--text-secondary)] hover:text-rose-500 font-semibold uppercase transition-colors cursor-pointer'
                                         >
                                             Clear All
                                         </button>
@@ -752,12 +752,12 @@ const AddBook = () => {
                                 </div>
                             </div>
 
-                            <div className='bg-black/50 rounded-2xl p-2 border border-gray-800 focus-within:border-blue-500/40 transition-all shadow-inner min-h-[90px] flex flex-col justify-between'>
+                            <div className='bg-[var(--bg-input)] rounded-md p-2 border border-[var(--border-color)] focus-within:border-[var(--accent-primary)] transition-colors min-h-[84px] flex flex-col justify-between'>
                                 <div className='flex items-center gap-2'>
                                     <input 
                                         type="text" 
                                         placeholder="Type SUX (e.g. 01, 02 or range 1-5) & press Enter..." 
-                                        className='p-3 bg-transparent outline-none w-full font-mono text-xs tracking-wider border-none text-blue-400 placeholder:text-gray-700' 
+                                        className='p-2 bg-transparent outline-none w-full font-mono text-xs tracking-wider border-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]' 
                                         value={suxInput} 
                                         onChange={(e) => setSuxInput(e.target.value)} 
                                         onKeyDown={handleSuxKeyDown}
@@ -766,29 +766,29 @@ const AddBook = () => {
                                     <button
                                         type="button"
                                         onClick={() => addSux(suxInput)}
-                                        className='px-4 py-2 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded-xl text-xs font-black uppercase transition-all shrink-0 border border-blue-500/30 cursor-pointer'
+                                        className='px-3.5 py-1.5 bg-[#337ab7] hover:bg-[#286090] text-white rounded-md text-xs font-semibold transition-colors shrink-0 cursor-pointer'
                                     >
                                         + Add
                                     </button>
                                 </div>
 
-                                <div className='flex flex-wrap items-center gap-1.5 p-2'>
+                                <div className='flex flex-wrap items-center gap-1.5 p-1.5'>
                                     {suxList.map((code, idx) => (
-                                        <span key={`${code}-${idx}`} className='bg-blue-500/10 text-blue-300 border border-blue-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5 transition-all hover:bg-blue-500/20 font-mono text-xs'>
-                                            <span className='text-[10px] text-blue-500 font-bold'>#</span>
+                                        <span key={`${code}-${idx}`} className='bg-[#337ab7]/15 text-[#337ab7] border border-[#337ab7]/30 px-2.5 py-1 rounded flex items-center gap-1.5 font-mono text-xs'>
+                                            <span className='text-[10px] font-bold'>#</span>
                                             <span className='font-bold'>{code}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => setSuxList(prev => prev.filter((_, i) => i !== idx))}
-                                                className='text-sm font-black leading-none text-gray-400 hover:text-white transition-colors ml-1 cursor-pointer'
+                                                className='text-xs font-bold leading-none text-[var(--text-secondary)] hover:text-rose-500 transition-colors ml-1 cursor-pointer'
                                             >
                                                 ×
                                             </button>
                                         </span>
                                     ))}
                                     {suxList.length === 0 && (
-                                        <p className='text-[10px] text-gray-600 italic px-2 py-1'>
-                                            💡 Type individual codes, comma-separated, or use ranges like <span className='text-blue-400 font-mono font-bold'>1-5</span> to add multiple copy suffixes.
+                                        <p className='text-[10px] text-[var(--text-muted)] px-1 py-0.5'>
+                                            Type individual codes, comma-separated, or use ranges like <span className='text-[#337ab7] font-mono font-bold'>1-5</span> to add multiple copy suffixes.
                                         </p>
                                     )}
                                 </div>
@@ -796,25 +796,25 @@ const AddBook = () => {
 
                             {/* Quick SUX Range Generator */}
                             <div className='flex items-center gap-2 pt-1'>
-                                <span className='text-[9px] font-black uppercase tracking-wider text-gray-600 ml-1'>Quick Add Range:</span>
+                                <span className='text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]'>Quick Add Range:</span>
                                 <button
                                     type="button"
                                     onClick={() => generateSuxRange(3)}
-                                    className='px-2.5 py-1 bg-gray-800/60 hover:bg-gray-700 text-gray-300 text-[10px] font-bold rounded-lg transition-colors border border-gray-700/50 cursor-pointer'
+                                    className='px-2.5 py-1 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-[10px] font-semibold rounded border border-[var(--border-color)] transition-colors cursor-pointer'
                                 >
                                     1..3
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => generateSuxRange(5)}
-                                    className='px-2.5 py-1 bg-gray-800/60 hover:bg-gray-700 text-gray-300 text-[10px] font-bold rounded-lg transition-colors border border-gray-700/50 cursor-pointer'
+                                    className='px-2.5 py-1 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-[10px] font-semibold rounded border border-[var(--border-color)] transition-colors cursor-pointer'
                                 >
                                     1..5
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => generateSuxRange(10)}
-                                    className='px-2.5 py-1 bg-gray-800/60 hover:bg-gray-700 text-gray-300 text-[10px] font-bold rounded-lg transition-colors border border-gray-700/50 cursor-pointer'
+                                    className='px-2.5 py-1 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-[10px] font-semibold rounded border border-[var(--border-color)] transition-colors cursor-pointer'
                                 >
                                     1..10
                                 </button>
@@ -823,38 +823,38 @@ const AddBook = () => {
                     </div>
 
                     <div className='grid grid-cols-2 gap-4'>
-                        <div className='space-y-2'>
-                            <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1'>Curated by</label>
-                            <input type="text" placeholder="Author Name" className='w-full p-4 rounded-2xl bg-black/50 border border-gray-800 focus:border-blue-500/50 outline-hidden transition-all text-sm font-bold' value={author} onChange={(e) => setAuthor(e.target.value)} />
+                        <div className='space-y-1.5'>
+                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Author</label>
+                            <input type="text" placeholder="Author Name" className='w-full p-3 rounded-md bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-semibold placeholder:text-[var(--text-muted)]' value={author} onChange={(e) => setAuthor(e.target.value)} />
                         </div>
-                        <div className='space-y-2'>
-                            <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1'>Deployment</label>
-                            <input type="text" placeholder="Location Code" className='w-full p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 focus:border-blue-400 outline-hidden transition-all text-sm font-bold font-mono placeholder:text-blue-900/50' value={location} onChange={(e) => setLocation(e.target.value)} />
+                        <div className='space-y-1.5'>
+                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Shelf Location</label>
+                            <input type="text" placeholder="Location Code" className='w-full p-3 rounded-md bg-[var(--bg-input)] border border-[var(--border-color)] text-[#3b9c88] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-semibold font-mono placeholder:text-[var(--text-muted)]' value={location} onChange={(e) => setLocation(e.target.value)} />
                         </div>
                     </div>
 
-                    <div className='space-y-2 text-black'>
-                        <div className='flex items-center justify-between ml-1'>
-                            <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest'>Classification Tags</label>
-                            <span className='text-[9px] font-black text-indigo-400 uppercase tracking-wider'>Standard Master List Available</span>
+                    <div className='space-y-1.5'>
+                        <div className='flex items-center justify-between'>
+                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Classification Tags</label>
+                            <span className='text-[9px] font-bold text-[#3b9c88] uppercase tracking-wider'>Standard Master List Available</span>
                         </div>
-                        <div className='bg-black/50 rounded-[1.5rem] p-2 border border-gray-800 focus-within:border-blue-500/40 transition-all shadow-inner min-h-[100px] flex flex-col'>
+                        <div className='bg-[var(--bg-input)] rounded-md p-2 border border-[var(--border-color)] focus-within:border-[var(--accent-primary)] transition-colors min-h-[84px] flex flex-col'>
                             <input
                                 value={tagInput}
                                 onChange={(e) => setTagInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 onBlur={handleBlur}
-                                placeholder='Type & Enter...'
-                                className='p-3 bg-transparent text-white outline-none w-full text-sm font-bold'
+                                placeholder='Type genre tag & press Enter...'
+                                className='p-2 bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none w-full text-xs font-semibold'
                             />
-                            <div className='flex flex-wrap items-center gap-2 p-2'>
+                            <div className='flex flex-wrap items-center gap-1.5 p-1.5'>
                                 {tags.map((t, i) => (
-                                    <span key={`${t}-${i}`} className='bg-blue-600/10 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-xl flex items-center gap-2 transition-all hover:bg-blue-600/20'>
-                                        <span className='text-[10px] font-black uppercase tracking-wider'>{t}</span>
+                                    <span key={`${t}-${i}`} className='bg-[#3b9c88]/15 text-[#3b9c88] border border-[#3b9c88]/30 px-2.5 py-1 rounded flex items-center gap-1.5'>
+                                        <span className='text-[10px] font-bold uppercase tracking-wider'>{t}</span>
                                         <button
                                             type="button"
                                             onClick={() => setTags(prev => prev.filter(x => x !== t))}
-                                            className='text-lg font-black leading-none hover:text-white transition-colors cursor-pointer'
+                                            className='text-xs font-bold leading-none hover:text-rose-500 transition-colors cursor-pointer'
                                         >
                                             ×
                                         </button>
@@ -865,11 +865,11 @@ const AddBook = () => {
 
                         {/* Standard Master Canonical Genre Quick-Select Chips */}
                         {masterGenres.length > 0 && (
-                            <div className='pt-1 text-white'>
-                                <p className='text-[9px] font-black uppercase tracking-wider text-indigo-400 mb-1.5 ml-1'>
+                            <div className='pt-1'>
+                                <p className='text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5'>
                                     ✨ Preferred Canonical Master Tags (Click to select):
                                 </p>
-                                <div className='flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 border border-gray-800/60 rounded-xl bg-black/30'>
+                                <div className='flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 border border-[var(--border-color)] rounded-md bg-[var(--bg-secondary)]'>
                                     {masterGenres.map((mg) => {
                                         const isSelected = tags.includes(mg);
                                         return (
@@ -883,10 +883,10 @@ const AddBook = () => {
                                                         setTags(prev => [...prev, mg]);
                                                     }
                                                 }}
-                                                className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer font-mono border ${
+                                                className={`text-[10px] font-semibold px-2.5 py-1 rounded transition-colors cursor-pointer font-mono border ${
                                                     isSelected 
-                                                        ? 'bg-indigo-600 text-white border-indigo-400 shadow-sm shadow-indigo-600/30' 
-                                                        : 'bg-gray-800/80 text-gray-400 border-gray-700 hover:text-indigo-300 hover:border-indigo-500/40'
+                                                        ? 'bg-[#3b9c88] text-white border-[#318473]' 
+                                                        : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border-color)] hover:text-[var(--text-primary)]'
                                                 }`}
                                             >
                                                 #{mg} {isSelected ? '✓' : '+'}
@@ -898,15 +898,15 @@ const AddBook = () => {
                         )}
                     </div>
 
-                    <div className='space-y-2'>
-                        <label className='text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1'>Narrative Data</label>
-                        <textarea placeholder="Describe the essence of this work..." className='w-full p-4 rounded-2xl bg-black/50 text-white border border-gray-800 focus:border-blue-500/50 outline-hidden transition-all text-sm font-medium min-h-[120px] shadow-inner placeholder:text-gray-700' value={description} onChange={(e) => setDescription(e.target.value)} />
+                    <div className='space-y-1.5'>
+                        <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Summary / Description</label>
+                        <textarea placeholder="Describe the essence of this work..." className='w-full p-3 rounded-md bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-medium min-h-[110px] placeholder:text-[var(--text-muted)]' value={description} onChange={(e) => setDescription(e.target.value)} />
                     </div>
 
                     <button 
                         type="submit" 
                         disabled={loading}
-                        className={`mt-4 bg-white text-black py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-xs shadow-2xl transition-all active:scale-95 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50'}`} 
+                        className={`mt-2 bg-[#3b9c88] hover:bg-[#318473] text-white py-3.5 rounded-md font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`} 
                         onClick={newbook}
                     >
                         {loading ? (loadingStatus || 'Processing Registry...') : `Authorize Addition (${suxList.length > 0 ? suxList.length : 1} ${suxList.length === 1 ? 'Copy' : 'Copies'})`}
