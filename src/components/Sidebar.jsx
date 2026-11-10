@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import {
   Book,
@@ -10,10 +10,7 @@ import {
   EyeOff,
   Shuffle,
   Inbox,
-  Bookmark,
   User,
-  Type,
-  FileText,
   List,
   FolderHeart,
   Plus,
@@ -26,20 +23,20 @@ import {
 } from 'lucide-react';
 
 export const BROWSE_ITEMS = [
-  { id: 'books', label: 'Books', icon: Book },
-  { id: 'hot', label: 'Hot Books', icon: Flame },
-  { id: 'downloaded', label: 'Downloaded / Borrowed', icon: ArrowDownCircle },
-  { id: 'top-rated', label: 'Top Rated Books', icon: Star },
-  { id: 'read', label: 'Read Books', icon: Eye },
-  { id: 'unread', label: 'Unread Books', icon: EyeOff },
-  { id: 'discover', label: 'Discover (Random)', icon: Shuffle }
+  { id: 'books', labelKey: 'sidebar.books', label: 'Books', icon: Book },
+  { id: 'hot', labelKey: 'sidebar.hot', label: 'Hot Books', icon: Flame },
+  { id: 'downloaded', labelKey: 'sidebar.downloaded', label: 'Downloaded / Borrowed', icon: ArrowDownCircle },
+  { id: 'top-rated', labelKey: 'sidebar.topRated', label: 'Top Rated Books', icon: Star },
+  { id: 'read', labelKey: 'sidebar.read', label: 'Read Books', icon: Eye },
+  { id: 'unread', labelKey: 'sidebar.unread', label: 'Unread Books', icon: EyeOff },
+  { id: 'discover', labelKey: 'sidebar.discover', label: 'Discover (Random)', icon: Shuffle }
 ];
 
 export const TAXONOMY_ITEMS = [
-  { id: 'categories', label: 'Categories', icon: Inbox },
-  { id: 'authors', label: 'Authors', icon: User },
-  { id: 'ratings', label: 'Ratings (1–5 stars)', icon: Star },
-  { id: 'books-list', label: 'Books List', icon: List }
+  { id: 'categories', labelKey: 'sidebar.categories', label: 'Categories', icon: Inbox },
+  { id: 'authors', labelKey: 'sidebar.authors', label: 'Authors', icon: User },
+  { id: 'ratings', labelKey: 'sidebar.ratings', label: 'Ratings (1–5 stars)', icon: Star },
+  { id: 'books-list', labelKey: 'sidebar.booksList', label: 'Books List', icon: List }
 ];
 
 export default function Sidebar({
@@ -49,14 +46,16 @@ export default function Sidebar({
   onSelectShelf
 }) {
   const navigate = useNavigate();
-  const location = useLocation();
   const {
     shelves,
     createShelf,
     mobileSidebarOpen,
     setMobileSidebarOpen,
     language,
-    setLanguage
+    setLanguage,
+    supportedLanguages,
+    t,
+    translateShelf
   } = useTheme();
 
   const [creatingShelf, setCreatingShelf] = useState(false);
@@ -67,7 +66,7 @@ export default function Sidebar({
     if (onSelectSection) {
       onSelectSection(sectionId);
     } else {
-      navigate(`/?section=${encodeURIComponent(sectionId)}`);
+      navigate(`/search?section=${encodeURIComponent(sectionId)}`);
     }
     setMobileSidebarOpen(false);
   };
@@ -78,7 +77,7 @@ export default function Sidebar({
     } else if (onSelectSection) {
       onSelectSection(`shelf:${shelf.name}`);
     } else {
-      navigate(`/?shelf=${encodeURIComponent(shelf.name)}`);
+      navigate(`/search?shelf=${encodeURIComponent(shelf.name)}`);
     }
     setMobileSidebarOpen(false);
   };
@@ -99,7 +98,7 @@ export default function Sidebar({
         {/* BROWSE SECTION */}
         <div>
           <div className="px-2.5 mb-1.5 text-[11px] font-semibold uppercase tracking-wider cw-text-muted">
-            BROWSE
+            {t('sidebar.browseHeader', 'BROWSE')}
           </div>
           <ul className="space-y-0.5">
             {BROWSE_ITEMS.map((item) => {
@@ -110,13 +109,14 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() => handleNavClick(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] rounded transition-colors cursor-pointer text-left border-l-2 ${isSelected
+                    className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] rounded transition-colors cursor-pointer text-left border-l-2 ${
+                      isSelected
                         ? 'font-semibold cw-text-primary bg-[var(--bg-active)] border-[var(--accent-primary)]'
                         : 'font-normal cw-text-secondary hover:cw-text-primary hover:bg-[var(--bg-hover)] border-transparent'
-                      }`}
+                    }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate">{t(item.labelKey, item.label)}</span>
                   </button>
                 </li>
               );
@@ -127,7 +127,7 @@ export default function Sidebar({
         {/* TAXONOMY SECTION */}
         <div>
           <div className="px-2.5 mb-1.5 text-[11px] font-semibold uppercase tracking-wider cw-text-muted">
-            TAXONOMY
+            {t('sidebar.taxonomyHeader', 'TAXONOMY')}
           </div>
           <ul className="space-y-0.5">
             {TAXONOMY_ITEMS.map((item) => {
@@ -138,13 +138,14 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() => handleNavClick(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] rounded transition-colors cursor-pointer text-left border-l-2 ${isSelected
+                    className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] rounded transition-colors cursor-pointer text-left border-l-2 ${
+                      isSelected
                         ? 'font-semibold cw-text-primary bg-[var(--bg-active)] border-[var(--accent-primary)]'
                         : 'font-normal cw-text-secondary hover:cw-text-primary hover:bg-[var(--bg-hover)] border-transparent'
-                      }`}
+                    }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate">{t(item.labelKey, item.label)}</span>
                   </button>
                 </li>
               );
@@ -155,7 +156,7 @@ export default function Sidebar({
         {/* SHELVES SECTION */}
         <div className="pt-2 border-t cw-border">
           <div className="px-2.5 mb-1.5 text-[11px] font-semibold uppercase tracking-wider cw-text-muted">
-            SHELVES
+            {t('sidebar.shelvesHeader', 'SHELVES')}
           </div>
 
           <ul className="space-y-0.5 mb-3">
@@ -167,14 +168,15 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() => handleShelfClick(shelf)}
-                    className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-[13px] rounded transition-colors cursor-pointer text-left border-l-2 ${isSelected
+                    className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-[13px] rounded transition-colors cursor-pointer text-left border-l-2 ${
+                      isSelected
                         ? 'font-semibold cw-text-primary bg-[var(--bg-active)] border-[var(--accent-teal)]'
                         : 'font-normal cw-text-secondary hover:cw-text-primary hover:bg-[var(--bg-hover)] border-transparent'
-                      }`}
+                    }`}
                   >
                     <span className="flex items-center gap-2 truncate">
                       <FolderHeart className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{shelf.name}</span>
+                      <span className="truncate">{translateShelf(shelf.name)}</span>
                     </span>
                   </button>
                 </li>
@@ -191,7 +193,7 @@ export default function Sidebar({
                 className="cw-btn-teal w-full py-2 text-xs font-medium"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Create a Shelf</span>
+                <span>{t('sidebar.createShelf', 'Create a Shelf')}</span>
               </button>
             </div>
           ) : (
@@ -200,19 +202,19 @@ export default function Sidebar({
               className="p-2 rounded cw-surface space-y-2 mx-1"
             >
               <label className="block text-[11px] font-semibold cw-text-secondary">
-                New Shelf Name
+                {t('sidebar.newShelfName', 'New Shelf Name')}
               </label>
               <input
                 type="text"
                 value={newShelfName}
                 onChange={(e) => setNewShelfName(e.target.value)}
-                placeholder="e.g. Grade 11 Physics"
+                placeholder={t('sidebar.shelfPlaceholder', 'e.g. Grade 11 Physics')}
                 autoFocus
                 className="cw-input w-full text-xs py-1 px-2"
               />
               <div className="flex items-center gap-1.5">
                 <button type="submit" className="cw-btn-teal flex-1 py-1 text-[11px]">
-                  Save
+                  {t('sidebar.save', 'Save')}
                 </button>
                 <button
                   type="button"
@@ -222,7 +224,7 @@ export default function Sidebar({
                   }}
                   className="cw-btn py-1 px-2 text-[11px]"
                 >
-                  Cancel
+                  {t('sidebar.cancel', 'Cancel')}
                 </button>
               </div>
             </form>
@@ -232,7 +234,7 @@ export default function Sidebar({
         {/* Mobile-Only Utility Shortcuts */}
         <div className="lg:hidden pt-3 border-t cw-border space-y-2">
           <div className="px-2.5 text-[11px] font-semibold uppercase tracking-wider cw-text-muted">
-            LIBRARY TOOLS
+            {t('sidebar.libraryTools', 'LIBRARY TOOLS')}
           </div>
           <div className="grid grid-cols-2 gap-1.5 px-1">
             <button
@@ -244,7 +246,7 @@ export default function Sidebar({
               className="cw-btn text-xs py-1.5 justify-start"
             >
               <Upload className="w-3.5 h-3.5" />
-              <span>Upload</span>
+              <span>{t('nav.addBook', 'Add Book')}</span>
             </button>
             <button
               type="button"
@@ -255,7 +257,7 @@ export default function Sidebar({
               className="cw-btn text-xs py-1.5 justify-start"
             >
               <ListChecks className="w-3.5 h-3.5" />
-              <span>Tasks</span>
+              <span>{t('nav.aiGenres', 'AI Genres')}</span>
             </button>
             <button
               type="button"
@@ -266,7 +268,7 @@ export default function Sidebar({
               className="cw-btn text-xs py-1.5 justify-start"
             >
               <Settings className="w-3.5 h-3.5" />
-              <span>Settings</span>
+              <span>{t('nav.accountDashboard', 'Account')}</span>
             </button>
             <button
               type="button"
@@ -277,24 +279,25 @@ export default function Sidebar({
               className="cw-btn text-xs py-1.5 justify-start"
             >
               <Shield className="w-3.5 h-3.5" />
-              <span>Admin</span>
+              <span>{t('nav.adminPanel', 'Admin')}</span>
             </button>
           </div>
 
           <div className="px-1 pt-1 flex items-center justify-between">
-            <span className="text-[11px] cw-text-muted font-medium">Language:</span>
+            <span className="text-[11px] cw-text-muted font-medium">
+              {t('nav.languageLabel', 'Language')}:
+            </span>
             <div className="flex items-center gap-1">
-              {['UZ', 'RU', 'EN'].map((lang) => (
+              {supportedLanguages.map((langItem) => (
                 <button
-                  key={lang}
+                  key={langItem.code}
                   type="button"
-                  onClick={() => setLanguage(lang)}
-                  className={`px-2 py-0.5 text-[11px] rounded border ${language === lang
-                      ? 'cw-btn-primary'
-                      : 'cw-btn'
-                    }`}
+                  onClick={() => setLanguage(langItem.code)}
+                  className={`px-2 py-0.5 text-[11px] rounded border ${
+                    language === langItem.code ? 'cw-btn-primary' : 'cw-btn'
+                  }`}
                 >
-                  {lang}
+                  {langItem.short}
                 </button>
               ))}
             </div>
@@ -310,7 +313,7 @@ export default function Sidebar({
           className="w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[13px] cw-text-secondary hover:cw-text-primary rounded hover:bg-[var(--bg-hover)] cursor-pointer text-left"
         >
           <Info className="w-4 h-4 shrink-0" />
-          <span>About</span>
+          <span>{t('sidebar.about', 'About')}</span>
         </button>
       </div>
     </div>
@@ -320,9 +323,7 @@ export default function Sidebar({
     <>
       {/* Persistent Desktop Left Sidebar */}
       <aside className="hidden lg:block w-56 xl:w-60 shrink-0 cw-sidebar min-h-[calc(100vh-3.5rem)]">
-        <div className="sticky top-14 h-[calc(100vh-3.5rem)]">
-          {renderSidebarContent()}
-        </div>
+        <div className="sticky top-14 h-[calc(100vh-3.5rem)]">{renderSidebarContent()}</div>
       </aside>
 
       {/* Mobile Drawer Sidebar */}
@@ -335,7 +336,7 @@ export default function Sidebar({
           <aside className="relative w-64 max-w-[80vw] cw-sidebar h-full z-10 flex flex-col">
             <div className="flex items-center justify-between px-4 h-12 border-b cw-border">
               <span className="font-bold text-xs uppercase tracking-wider cw-text-secondary">
-                Catalog Navigation
+                {t('sidebar.catalogNavigation', 'Catalog Navigation')}
               </span>
               <button
                 type="button"
@@ -358,7 +359,7 @@ export default function Sidebar({
             <div className="flex items-center justify-between border-b cw-border pb-3">
               <h3 className="font-bold text-sm cw-text-primary flex items-center gap-2">
                 <Info className="w-4 h-4 text-[var(--accent-primary)]" />
-                About PS Library (Calibre-Web Edition)
+                <span>{t('sidebar.aboutTitle', 'About PS Library (Calibre-Web Edition)')}</span>
               </h3>
               <button
                 type="button"
@@ -369,15 +370,11 @@ export default function Sidebar({
               </button>
             </div>
             <div className="text-xs cw-text-secondary space-y-2 leading-relaxed">
-              <p>
-                <strong>PS School Library Management System</strong> provides an academic digital
-                catalog inspired by Calibre-Web for indexing holdings, tracking student loans,
-                organizing canonical genres, and curating curriculum shelves.
-              </p>
+              <p>{t('sidebar.aboutDescription')}</p>
               <div className="cw-secondary-bg border cw-border rounded p-3 font-mono text-[11px] space-y-1">
-                <div>Catalog Engine: Calibre-Web UI v2.5</div>
-                <div>Languages Supported: O&apos;zbek (UZ) • Русский (RU) • English (EN)</div>
-                <div>Formats Indexed: EPUB, PDF, MOBI, FB2, Physical Holdings</div>
+                <div>Catalog Engine: Calibre-Web UI v2.5 + Dual-Script Search</div>
+                <div>Languages: O‘zbekcha (uz) • Русский (ru) • English (en)</div>
+                <div>Transliteration: Oʻzbek Lotin ↔ Кирилл • Русский • English</div>
               </div>
             </div>
             <div className="flex justify-end pt-2 border-t cw-border">
@@ -386,7 +383,7 @@ export default function Sidebar({
                 onClick={() => setShowAboutModal(false)}
                 className="cw-btn-primary px-4 py-1.5 text-xs"
               >
-                Close
+                {t('sidebar.close', 'Close')}
               </button>
             </div>
           </div>
@@ -395,4 +392,3 @@ export default function Sidebar({
     </>
   );
 }
-

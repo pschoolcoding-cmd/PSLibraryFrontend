@@ -10,28 +10,28 @@ const AddBook = () => {
     const { isAdmin, isSubAdmin, canAccessAdminPanel, reader, isAuthenticated } = useAuth();
 
     if (!canAccessAdminPanel) {
-      return (
-        <div className="min-h-screen bg-[#030303] text-white flex flex-col justify-between">
-          <Navbar />
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4">
-              <span className="text-2xl">🔒</span>
+        return (
+            <div className="min-h-screen bg-[#030303] text-white flex flex-col justify-between">
+                <Navbar />
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                    <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-4">
+                        <span className="text-2xl">🔒</span>
+                    </div>
+                    <h2 className="text-2xl font-black font-[Outfit] uppercase italic mb-2 text-amber-400">
+                        Staff Access Only
+                    </h2>
+                    <p className="text-gray-400 text-sm max-w-md mb-6">
+                        The Add Book catalog management page is reserved exclusively for registered staff administrators and subadmins. Readers may browse, search, and borrow from the public catalog.
+                    </p>
+                    <a
+                        href="/search"
+                        className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl shadow-lg shadow-blue-600/30 transition-all"
+                    >
+                        Browse Catalog Instead
+                    </a>
+                </div>
             </div>
-            <h2 className="text-2xl font-black font-[Outfit] uppercase italic mb-2 text-amber-400">
-              Staff Access Only
-            </h2>
-            <p className="text-gray-400 text-sm max-w-md mb-6">
-              The Add Book catalog management page is reserved exclusively for registered staff administrators and subadmins. Readers may browse, search, and borrow from the public catalog.
-            </p>
-            <a
-              href="/search"
-              className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl shadow-lg shadow-blue-600/30 transition-all"
-            >
-              Browse Catalog Instead
-            </a>
-          </div>
-        </div>
-      );
+        );
     }
 
     const [bookIdp1, setBookIdp1] = useState('');
@@ -233,7 +233,7 @@ const AddBook = () => {
                         stopScanner();
                     }
                 },
-                () => {}
+                () => { }
             );
         } catch (err) {
             console.error(err);
@@ -376,7 +376,7 @@ const AddBook = () => {
 
         // ImgBB expects the base64 string without the data:image/png;base64, prefix
         const base64Data = base64Image.split(',')[1];
-        
+
         const formData = new FormData();
         formData.append('image', base64Data);
 
@@ -476,7 +476,7 @@ const AddBook = () => {
 
         setLoading(true);
         setLoadingStatus('Preparing image asset...');
-        
+
         let imageUrl = uploadedImageUrl; // Use the already uploaded ImgBB URL
         if (!imageUrl && image) {
             imageUrl = await uploadToImgBB(image);
@@ -542,380 +542,379 @@ const AddBook = () => {
             alert('Failed to register book copies. Please check backend network connection.');
         }
     }
-  return (
-    <div className='min-h-screen w-full bg-[#030712] text-white pt-24 pb-12 px-4 md:px-12 flex items-center justify-center font-[Inter] relative'>
-        <Navbar />
+    return (
+        <div className='min-h-screen w-full bg-[#030712] text-white pt-24 pb-12 px-4 md:px-12 flex items-center justify-center font-[Inter] relative'>
+            <Navbar />
 
-        {/* Right Floating Save Draft Notification Toast */}
-        {hasDraft && (
-            <div className="fixed top-24 right-4 sm:right-8 z-50 max-w-sm w-full bg-gray-900/95 backdrop-blur-2xl border border-purple-500/40 p-4.5 rounded-3xl shadow-2xl text-white flex flex-col gap-3 transition-all animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold text-lg shrink-0">
-                            💾
+            {/* Right Floating Save Draft Notification Toast */}
+            {hasDraft && (
+                <div className="fixed top-24 right-4 sm:right-8 z-50 max-w-sm w-full bg-gray-900/95 backdrop-blur-2xl border border-purple-500/40 p-4.5 rounded-3xl shadow-2xl text-white flex flex-col gap-3 transition-all animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold text-lg shrink-0">
+                                💾
+                            </div>
+                            <div>
+                                <p className="font-extrabold text-xs uppercase tracking-wider font-[Outfit] text-purple-300">
+                                    Unsaved Draft Found
+                                </p>
+                                <p className="text-[11px] text-gray-300 mt-0.5 leading-snug">
+                                    You have unsubmitted book data from your previous session.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="font-extrabold text-xs uppercase tracking-wider font-[Outfit] text-purple-300">
-                                Unsaved Draft Found
-                            </p>
-                            <p className="text-[11px] text-gray-300 mt-0.5 leading-snug">
-                                You have unsubmitted book data from your previous session.
-                            </p>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setHasDraft(false)}
+                            className="text-gray-400 hover:text-white text-sm p-1 cursor-pointer"
+                            title="Dismiss notification"
+                        >
+                            ✕
+                        </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => setHasDraft(false)}
-                        className="text-gray-400 hover:text-white text-sm p-1 cursor-pointer"
-                        title="Dismiss notification"
-                    >
-                        ✕
-                    </button>
-                </div>
-                <div className="flex items-center gap-2 pt-1 border-t border-purple-500/20">
-                    <button
-                        type="button"
-                        onClick={() => { restoreDraft(); setHasDraft(false); }}
-                        className="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs py-2 px-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                        ⚡ Restore Saved Draft
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => { discardDraft(); }}
-                        className="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs py-2 px-3 rounded-xl border border-rose-500/30 transition-all flex items-center justify-center cursor-pointer"
-                    >
-                        🗑️ Delete
-                    </button>
-                </div>
-            </div>
-        )}
-
-        <div className='max-w-4xl w-full bg-gray-900/40 backdrop-blur-2xl p-8 md:p-12 rounded-[3rem] border border-gray-800/50 shadow-2xl'>
-            
-            {isSubAdmin && (
-                <div className="mb-8 p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold shrink-0">
-                        ⏳
-                    </div>
-                    <div>
-                        <p className="font-bold uppercase tracking-wider text-xs">Subadmin Submission Queue</p>
-                        <p className="text-amber-500 text-xs mt-1">Your added book copies will be sent to the Admin Pending Approval queue for review before appearing in the public library catalog.</p>
+                    <div className="flex items-center gap-2 pt-1 border-t border-purple-500/20">
+                        <button
+                            type="button"
+                            onClick={() => { restoreDraft(); setHasDraft(false); }}
+                            className="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs py-2 px-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                            ⚡ Restore Saved Draft
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { discardDraft(); }}
+                            className="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs py-2 px-3 rounded-xl border border-rose-500/30 transition-all flex items-center justify-center cursor-pointer"
+                        >
+                            🗑️ Delete
+                        </button>
                     </div>
                 </div>
             )}
 
-            <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-5 border-b border-[var(--border-color)] gap-4'>
-                <div>
-                    <p className='text-[#3b9c88] text-[10px] font-bold uppercase tracking-widest mb-1'>Administration</p>
-                    <h1 className='text-2xl font-bold tracking-tight text-[var(--text-primary)]'>New Catalog Entry</h1>
-                </div>
-                <div className='bg-[#337ab7]/15 text-[#337ab7] px-3 py-1.5 rounded-md text-[10px] font-bold tracking-wider border border-[#337ab7]/30'>
-                    {isSubAdmin ? 'SUBADMIN INTAKE' : 'SECURE ADDITION'}
-                </div>
-            </div>
+            <div className='max-w-4xl w-full bg-gray-900/40 backdrop-blur-2xl p-8 md:p-12 rounded-[3rem] border border-gray-800/50 shadow-2xl'>
 
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
-                {/* Visual Section */}
-                <div className='space-y-3'>
-                    <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Book Cover Art</label>
-                    <div 
-                        onDragOver={handleDragOver} 
-                        onDrop={handleDrop} 
-                        className='relative aspect-[3/4] border border-dashed border-[var(--border-color)] rounded-lg hover:border-[var(--accent-primary)] transition-colors bg-[var(--bg-secondary)] flex flex-col items-center justify-center group overflow-hidden'
-                    >
-                        {image ? (
-                            <div className='relative w-full h-full'>
-                                <img src={image} alt="Preview" className='w-full h-full object-cover' />
-                                <div className='absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-xs'>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); setImage(''); setUploadedImageUrl(''); setImageStatus(''); }}
-                                        className='bg-rose-600 hover:bg-rose-700 text-white w-11 h-11 rounded-md flex items-center justify-center shadow-lg transition-colors cursor-pointer'
-                                    >
-                                        <span className='text-lg font-bold'>✕</span>
-                                    </button>
-                                </div>
-                                {imageStatus === 'uploading' && (
-                                    <div className='absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-3'>
-                                        <div className='w-9 h-9 border-3 border-[#337ab7]/30 border-t-[#337ab7] rounded-full animate-spin'></div>
-                                        <p className='text-[10px] font-bold text-white uppercase tracking-wider'>Uploading to Cloud...</p>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <>
-                                <input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    onChange={handleImageChange} 
-                                    className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10'
-                                />
-                                <div className='text-4xl mb-3 opacity-60'>📸</div>
-                                <p className='text-[var(--text-primary)] font-semibold text-xs'>Drop cover image or click to upload</p>
-                                <p className='text-[var(--text-muted)] text-[10px] mt-1 font-mono'>Supports JPG, PNG, WebP</p>
-                            </>
-                        )}
+                {isSubAdmin && (
+                    <div className="mb-8 p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold shrink-0">
+                            ⏳
+                        </div>
+                        <div>
+                            <p className="font-bold uppercase tracking-wider text-xs">Subadmin Submission Queue</p>
+                            <p className="text-amber-500 text-xs mt-1">Your added book copies will be sent to the Admin Pending Approval queue for review before appearing in the public library catalog.</p>
+                        </div>
+                    </div>
+                )}
+
+                <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-5 border-b border-[var(--border-color)] gap-4'>
+                    <div>
+                        <p className='text-[#3b9c88] text-[10px] font-bold uppercase tracking-widest mb-1'>Administration</p>
+                        <h1 className='text-2xl font-bold tracking-tight text-[var(--text-primary)]'>New Catalog Entry</h1>
+                    </div>
+                    <div className='bg-[#337ab7]/15 text-[#337ab7] px-3 py-1.5 rounded-md text-[10px] font-bold tracking-wider border border-[#337ab7]/30'>
+                        {isSubAdmin ? 'SUBADMIN INTAKE' : 'SECURE ADDITION'}
                     </div>
                 </div>
 
-                {/* Form Section */}
-                <div className='flex flex-col gap-5'>
-                    <div className='space-y-1.5'>
-                        <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Title & Registry</label>
-                        <input 
-                            type="text" 
-                            placeholder="Volume Title" 
-                            className='w-full p-3 rounded-md bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-semibold placeholder:text-[var(--text-muted)]' 
-                            value={title} 
-                            onChange={(e) => setTitle(e.target.value)} 
-                        />
-                    </div>
-
-                    <div className='space-y-4'>
-                        <div id="isbn-reader" className={`w-full aspect-video bg-black rounded-lg overflow-hidden border border-[var(--border-color)] ${isScanning ? 'block' : 'hidden'}`}></div>
-                        <button 
-                            type="button"
-                            onClick={isScanning ? stopScanner : startScanner}
-                            className={`w-full py-2.5 rounded-md font-semibold text-xs transition-colors border cursor-pointer ${isScanning ? 'bg-rose-500/15 border-rose-500/30 text-rose-500' : 'bg-[#337ab7] hover:bg-[#286090] text-white border-[#2e6da4]'}`}
+                <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+                    {/* Visual Section */}
+                    <div className='space-y-3'>
+                        <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Book Cover Art</label>
+                        <div
+                            onDragOver={handleDragOver}
+                            onDrop={handleDrop}
+                            className='relative aspect-[3/4] border border-dashed border-[var(--border-color)] rounded-lg hover:border-[var(--accent-primary)] transition-colors bg-[var(--bg-secondary)] flex flex-col items-center justify-center group overflow-hidden'
                         >
-                            {isScanning ? 'Deactivate Lens' : '📷 Optical ISBN Scan'}
-                        </button>
-
-                        <div className='space-y-1.5'>
-                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Base ISBN</label>
-                            <div className='bg-[var(--bg-input)] rounded-md border border-[var(--border-color)] focus-within:border-[var(--accent-primary)] transition-colors'>
-                                <input 
-                                    type="text" 
-                                    placeholder="e.g. 9780131103627" 
-                                    className='p-3 bg-transparent outline-none w-full font-mono text-xs tracking-wider border-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]' 
-                                    value={bookIdp1} 
-                                    onChange={(e) => setBookIdp1(e.target.value)}
-                                    onBlur={() => checkIsbnStatus()}
-                                />
-                            </div>
-
-                            {/* ISBN Existence Status Indicator */}
-                            {isbnChecking && (
-                                <div className="flex items-center gap-2 text-xs text-[#337ab7] font-medium px-1 py-1">
-                                    <div className="w-3.5 h-3.5 border-2 border-[#337ab7]/20 border-t-[#337ab7] rounded-full animate-spin"></div>
-                                    Checking catalog for existing ISBN...
-                                </div>
-                            )}
-
-                            {isbnCheckResult && !isbnChecking && (
-                                isbnCheckResult.exists ? (
-                                    <div className="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 flex flex-col gap-2">
-                                        <div className="flex items-start gap-2.5">
-                                            <span className="text-base">⚠️</span>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="font-bold text-xs uppercase tracking-wider">
-                                                    Book Already Registered ({isbnCheckResult.count} {isbnCheckResult.count === 1 ? 'copy' : 'copies'} in catalog)
-                                                </p>
-                                                <p className="text-xs text-[var(--text-primary)] mt-0.5 font-medium truncate">
-                                                    "{isbnCheckResult.book?.name}" {isbnCheckResult.book?.author ? `by ${isbnCheckResult.book.author}` : ''}
-                                                </p>
-                                            </div>
-                                        </div>
+                            {image ? (
+                                <div className='relative w-full h-full'>
+                                    <img src={image} alt="Preview" className='w-full h-full object-cover' />
+                                    <div className='absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-xs'>
                                         <button
-                                            type="button"
-                                            onClick={() => autofillExistingBook(isbnCheckResult.book)}
-                                            className="self-start bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs px-3 py-1.5 rounded-md transition-colors cursor-pointer flex items-center gap-1.5 mt-1"
+                                            onClick={(e) => { e.stopPropagation(); setImage(''); setUploadedImageUrl(''); setImageStatus(''); }}
+                                            className='bg-rose-600 hover:bg-rose-700 text-white w-11 h-11 rounded-md flex items-center justify-center shadow-lg transition-colors cursor-pointer'
                                         >
-                                            ⚡ Autofill Details from Existing Copy
+                                            <span className='text-lg font-bold'>✕</span>
                                         </button>
                                     </div>
-                                ) : (
-                                    <div className="p-2.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-semibold flex items-center gap-2">
-                                        <span>✅</span>
-                                        <span>New Book Title: No existing copies found with this ISBN in catalog.</span>
-                                    </div>
-                                )
+                                    {imageStatus === 'uploading' && (
+                                        <div className='absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-3'>
+                                            <div className='w-9 h-9 border-3 border-[#337ab7]/30 border-t-[#337ab7] rounded-full animate-spin'></div>
+                                            <p className='text-[10px] font-bold text-white uppercase tracking-wider'>Uploading to Cloud...</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10'
+                                    />
+                                    <div className='text-4xl mb-3 opacity-60'>📸</div>
+                                    <p className='text-[var(--text-primary)] font-semibold text-xs'>Drop cover image or click to upload</p>
+                                    <p className='text-[var(--text-muted)] text-[10px] mt-1 font-mono'>Supports JPG, PNG, WebP</p>
+                                </>
                             )}
+                        </div>
+                    </div>
+
+                    {/* Form Section */}
+                    <div className='flex flex-col gap-5'>
+                        <div className='space-y-1.5'>
+                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Title & Registry</label>
+                            <input
+                                type="text"
+                                placeholder="Volume Title"
+                                className='w-full p-3 rounded-md bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-semibold placeholder:text-[var(--text-muted)]'
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                            />
+                        </div>
+
+                        <div className='space-y-4'>
+                            <div id="isbn-reader" className={`w-full aspect-video bg-black rounded-lg overflow-hidden border border-[var(--border-color)] ${isScanning ? 'block' : 'hidden'}`}></div>
+                            <button
+                                type="button"
+                                onClick={isScanning ? stopScanner : startScanner}
+                                className={`w-full py-2.5 rounded-md font-semibold text-xs transition-colors border cursor-pointer ${isScanning ? 'bg-rose-500/15 border-rose-500/30 text-rose-500' : 'bg-[#337ab7] hover:bg-[#286090] text-white border-[#2e6da4]'}`}
+                            >
+                                {isScanning ? 'Deactivate Lens' : '📷 Optical ISBN Scan'}
+                            </button>
+
+                            <div className='space-y-1.5'>
+                                <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Base ISBN</label>
+                                <div className='bg-[var(--bg-input)] rounded-md border border-[var(--border-color)] focus-within:border-[var(--accent-primary)] transition-colors'>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. 9780131103627"
+                                        className='p-3 bg-transparent outline-none w-full font-mono text-xs tracking-wider border-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]'
+                                        value={bookIdp1}
+                                        onChange={(e) => setBookIdp1(e.target.value)}
+                                        onBlur={() => checkIsbnStatus()}
+                                    />
+                                </div>
+
+                                {/* ISBN Existence Status Indicator */}
+                                {isbnChecking && (
+                                    <div className="flex items-center gap-2 text-xs text-[#337ab7] font-medium px-1 py-1">
+                                        <div className="w-3.5 h-3.5 border-2 border-[#337ab7]/20 border-t-[#337ab7] rounded-full animate-spin"></div>
+                                        Checking catalog for existing ISBN...
+                                    </div>
+                                )}
+
+                                {isbnCheckResult && !isbnChecking && (
+                                    isbnCheckResult.exists ? (
+                                        <div className="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 flex flex-col gap-2">
+                                            <div className="flex items-start gap-2.5">
+                                                <span className="text-base">⚠️</span>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="font-bold text-xs uppercase tracking-wider">
+                                                        Book Already Registered ({isbnCheckResult.count} {isbnCheckResult.count === 1 ? 'copy' : 'copies'} in catalog)
+                                                    </p>
+                                                    <p className="text-xs text-[var(--text-primary)] mt-0.5 font-medium truncate">
+                                                        "{isbnCheckResult.book?.name}" {isbnCheckResult.book?.author ? `by ${isbnCheckResult.book.author}` : ''}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => autofillExistingBook(isbnCheckResult.book)}
+                                                className="self-start bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs px-3 py-1.5 rounded-md transition-colors cursor-pointer flex items-center gap-1.5 mt-1"
+                                            >
+                                                ⚡ Autofill Details from Existing Copy
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="p-2.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-semibold flex items-center gap-2">
+                                            <span>✅</span>
+                                            <span>New Book Title: No existing copies found with this ISBN in catalog.</span>
+                                        </div>
+                                    )
+                                )}
+                            </div>
+
+                            <div className='space-y-1.5'>
+                                <div className='flex items-center justify-between'>
+                                    <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Copy Identifiers (SUX List)</label>
+                                    <div className='flex items-center gap-2'>
+                                        <span className='bg-[#337ab7]/15 text-[#337ab7] text-[10px] font-bold px-2 py-0.5 rounded border border-[#337ab7]/30 font-mono'>
+                                            {suxList.length} {suxList.length === 1 ? 'Copy' : 'Copies'}
+                                        </span>
+                                        {suxList.length > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setSuxList([])}
+                                                className='text-[10px] text-[var(--text-secondary)] hover:text-rose-500 font-semibold uppercase transition-colors cursor-pointer'
+                                            >
+                                                Clear All
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className='bg-[var(--bg-input)] rounded-md p-2 border border-[var(--border-color)] focus-within:border-[var(--accent-primary)] transition-colors min-h-[84px] flex flex-col justify-between'>
+                                    <div className='flex items-center gap-2'>
+                                        <input
+                                            type="text"
+                                            placeholder="Type SUX (e.g. 01, 02 or range 1-5) & press Enter..."
+                                            className='p-2 bg-transparent outline-none w-full font-mono text-xs tracking-wider border-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]'
+                                            value={suxInput}
+                                            onChange={(e) => setSuxInput(e.target.value)}
+                                            onKeyDown={handleSuxKeyDown}
+                                            onBlur={handleSuxBlur}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => addSux(suxInput)}
+                                            className='px-3.5 py-1.5 bg-[#337ab7] hover:bg-[#286090] text-white rounded-md text-xs font-semibold transition-colors shrink-0 cursor-pointer'
+                                        >
+                                            + Add
+                                        </button>
+                                    </div>
+
+                                    <div className='flex flex-wrap items-center gap-1.5 p-1.5'>
+                                        {suxList.map((code, idx) => (
+                                            <span key={`${code}-${idx}`} className='bg-[#337ab7]/15 text-[#337ab7] border border-[#337ab7]/30 px-2.5 py-1 rounded flex items-center gap-1.5 font-mono text-xs'>
+                                                <span className='text-[10px] font-bold'>#</span>
+                                                <span className='font-bold'>{code}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSuxList(prev => prev.filter((_, i) => i !== idx))}
+                                                    className='text-xs font-bold leading-none text-[var(--text-secondary)] hover:text-rose-500 transition-colors ml-1 cursor-pointer'
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                        {suxList.length === 0 && (
+                                            <p className='text-[10px] text-[var(--text-muted)] px-1 py-0.5'>
+                                                Type individual codes, comma-separated, or use ranges like <span className='text-[#337ab7] font-mono font-bold'>1-5</span> to add multiple copy suffixes.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Quick SUX Range Generator */}
+                                <div className='flex items-center gap-2 pt-1'>
+                                    <span className='text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]'>Quick Add Range:</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => generateSuxRange(3)}
+                                        className='px-2.5 py-1 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-[10px] font-semibold rounded border border-[var(--border-color)] transition-colors cursor-pointer'
+                                    >
+                                        1..3
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => generateSuxRange(5)}
+                                        className='px-2.5 py-1 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-[10px] font-semibold rounded border border-[var(--border-color)] transition-colors cursor-pointer'
+                                    >
+                                        1..5
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => generateSuxRange(10)}
+                                        className='px-2.5 py-1 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-[10px] font-semibold rounded border border-[var(--border-color)] transition-colors cursor-pointer'
+                                    >
+                                        1..10
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='grid grid-cols-2 gap-4'>
+                            <div className='space-y-1.5'>
+                                <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Author</label>
+                                <input type="text" placeholder="Author Name" className='w-full p-3 rounded-md bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-semibold placeholder:text-[var(--text-muted)]' value={author} onChange={(e) => setAuthor(e.target.value)} />
+                            </div>
+                            <div className='space-y-1.5'>
+                                <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Shelf Location</label>
+                                <input type="text" placeholder="Location Code" className='w-full p-3 rounded-md bg-[var(--bg-input)] border border-[var(--border-color)] text-[#3b9c88] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-semibold font-mono placeholder:text-[var(--text-muted)]' value={location} onChange={(e) => setLocation(e.target.value)} />
+                            </div>
                         </div>
 
                         <div className='space-y-1.5'>
                             <div className='flex items-center justify-between'>
-                                <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Copy Identifiers (SUX List)</label>
-                                <div className='flex items-center gap-2'>
-                                    <span className='bg-[#337ab7]/15 text-[#337ab7] text-[10px] font-bold px-2 py-0.5 rounded border border-[#337ab7]/30 font-mono'>
-                                        {suxList.length} {suxList.length === 1 ? 'Copy' : 'Copies'}
-                                    </span>
-                                    {suxList.length > 0 && (
-                                        <button 
-                                            type="button" 
-                                            onClick={() => setSuxList([])} 
-                                            className='text-[10px] text-[var(--text-secondary)] hover:text-rose-500 font-semibold uppercase transition-colors cursor-pointer'
-                                        >
-                                            Clear All
-                                        </button>
-                                    )}
-                                </div>
+                                <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Classification Tags</label>
+                                <span className='text-[9px] font-bold text-[#3b9c88] uppercase tracking-wider'>Standard Master List Available</span>
                             </div>
-
-                            <div className='bg-[var(--bg-input)] rounded-md p-2 border border-[var(--border-color)] focus-within:border-[var(--accent-primary)] transition-colors min-h-[84px] flex flex-col justify-between'>
-                                <div className='flex items-center gap-2'>
-                                    <input 
-                                        type="text" 
-                                        placeholder="Type SUX (e.g. 01, 02 or range 1-5) & press Enter..." 
-                                        className='p-2 bg-transparent outline-none w-full font-mono text-xs tracking-wider border-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]' 
-                                        value={suxInput} 
-                                        onChange={(e) => setSuxInput(e.target.value)} 
-                                        onKeyDown={handleSuxKeyDown}
-                                        onBlur={handleSuxBlur}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => addSux(suxInput)}
-                                        className='px-3.5 py-1.5 bg-[#337ab7] hover:bg-[#286090] text-white rounded-md text-xs font-semibold transition-colors shrink-0 cursor-pointer'
-                                    >
-                                        + Add
-                                    </button>
-                                </div>
-
+                            <div className='bg-[var(--bg-input)] rounded-md p-2 border border-[var(--border-color)] focus-within:border-[var(--accent-primary)] transition-colors min-h-[84px] flex flex-col'>
+                                <input
+                                    value={tagInput}
+                                    onChange={(e) => setTagInput(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    onBlur={handleBlur}
+                                    placeholder='Type genre tag & press Enter...'
+                                    className='p-2 bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none w-full text-xs font-semibold'
+                                />
                                 <div className='flex flex-wrap items-center gap-1.5 p-1.5'>
-                                    {suxList.map((code, idx) => (
-                                        <span key={`${code}-${idx}`} className='bg-[#337ab7]/15 text-[#337ab7] border border-[#337ab7]/30 px-2.5 py-1 rounded flex items-center gap-1.5 font-mono text-xs'>
-                                            <span className='text-[10px] font-bold'>#</span>
-                                            <span className='font-bold'>{code}</span>
+                                    {tags.map((t, i) => (
+                                        <span key={`${t}-${i}`} className='bg-[#3b9c88]/15 text-[#3b9c88] border border-[#3b9c88]/30 px-2.5 py-1 rounded flex items-center gap-1.5'>
+                                            <span className='text-[10px] font-bold uppercase tracking-wider'>{t}</span>
                                             <button
                                                 type="button"
-                                                onClick={() => setSuxList(prev => prev.filter((_, i) => i !== idx))}
-                                                className='text-xs font-bold leading-none text-[var(--text-secondary)] hover:text-rose-500 transition-colors ml-1 cursor-pointer'
+                                                onClick={() => setTags(prev => prev.filter(x => x !== t))}
+                                                className='text-xs font-bold leading-none hover:text-rose-500 transition-colors cursor-pointer'
                                             >
                                                 ×
                                             </button>
                                         </span>
                                     ))}
-                                    {suxList.length === 0 && (
-                                        <p className='text-[10px] text-[var(--text-muted)] px-1 py-0.5'>
-                                            Type individual codes, comma-separated, or use ranges like <span className='text-[#337ab7] font-mono font-bold'>1-5</span> to add multiple copy suffixes.
-                                        </p>
-                                    )}
                                 </div>
                             </div>
 
-                            {/* Quick SUX Range Generator */}
-                            <div className='flex items-center gap-2 pt-1'>
-                                <span className='text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]'>Quick Add Range:</span>
-                                <button
-                                    type="button"
-                                    onClick={() => generateSuxRange(3)}
-                                    className='px-2.5 py-1 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-[10px] font-semibold rounded border border-[var(--border-color)] transition-colors cursor-pointer'
-                                >
-                                    1..3
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => generateSuxRange(5)}
-                                    className='px-2.5 py-1 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-[10px] font-semibold rounded border border-[var(--border-color)] transition-colors cursor-pointer'
-                                >
-                                    1..5
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => generateSuxRange(10)}
-                                    className='px-2.5 py-1 bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] text-[10px] font-semibold rounded border border-[var(--border-color)] transition-colors cursor-pointer'
-                                >
-                                    1..10
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className='grid grid-cols-2 gap-4'>
-                        <div className='space-y-1.5'>
-                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Author</label>
-                            <input type="text" placeholder="Author Name" className='w-full p-3 rounded-md bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-semibold placeholder:text-[var(--text-muted)]' value={author} onChange={(e) => setAuthor(e.target.value)} />
-                        </div>
-                        <div className='space-y-1.5'>
-                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Shelf Location</label>
-                            <input type="text" placeholder="Location Code" className='w-full p-3 rounded-md bg-[var(--bg-input)] border border-[var(--border-color)] text-[#3b9c88] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-semibold font-mono placeholder:text-[var(--text-muted)]' value={location} onChange={(e) => setLocation(e.target.value)} />
-                        </div>
-                    </div>
-
-                    <div className='space-y-1.5'>
-                        <div className='flex items-center justify-between'>
-                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Classification Tags</label>
-                            <span className='text-[9px] font-bold text-[#3b9c88] uppercase tracking-wider'>Standard Master List Available</span>
-                        </div>
-                        <div className='bg-[var(--bg-input)] rounded-md p-2 border border-[var(--border-color)] focus-within:border-[var(--accent-primary)] transition-colors min-h-[84px] flex flex-col'>
-                            <input
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                onBlur={handleBlur}
-                                placeholder='Type genre tag & press Enter...'
-                                className='p-2 bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none w-full text-xs font-semibold'
-                            />
-                            <div className='flex flex-wrap items-center gap-1.5 p-1.5'>
-                                {tags.map((t, i) => (
-                                    <span key={`${t}-${i}`} className='bg-[#3b9c88]/15 text-[#3b9c88] border border-[#3b9c88]/30 px-2.5 py-1 rounded flex items-center gap-1.5'>
-                                        <span className='text-[10px] font-bold uppercase tracking-wider'>{t}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setTags(prev => prev.filter(x => x !== t))}
-                                            className='text-xs font-bold leading-none hover:text-rose-500 transition-colors cursor-pointer'
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Standard Master Canonical Genre Quick-Select Chips */}
-                        {masterGenres.length > 0 && (
-                            <div className='pt-1'>
-                                <p className='text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5'>
-                                    ✨ Preferred Canonical Master Tags (Click to select):
-                                </p>
-                                <div className='flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 border border-[var(--border-color)] rounded-md bg-[var(--bg-secondary)]'>
-                                    {masterGenres.map((mg) => {
-                                        const isSelected = tags.includes(mg);
-                                        return (
-                                            <button
-                                                key={mg}
-                                                type="button"
-                                                onClick={() => {
-                                                    if (isSelected) {
-                                                        setTags(prev => prev.filter(t => t !== mg));
-                                                    } else {
-                                                        setTags(prev => [...prev, mg]);
-                                                    }
-                                                }}
-                                                className={`text-[10px] font-semibold px-2.5 py-1 rounded transition-colors cursor-pointer font-mono border ${
-                                                    isSelected 
-                                                        ? 'bg-[#3b9c88] text-white border-[#318473]' 
-                                                        : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border-color)] hover:text-[var(--text-primary)]'
-                                                }`}
-                                            >
-                                                #{mg} {isSelected ? '✓' : '+'}
-                                            </button>
-                                        );
-                                    })}
+                            {/* Standard Master Canonical Genre Quick-Select Chips */}
+                            {masterGenres.length > 0 && (
+                                <div className='pt-1'>
+                                    <p className='text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5'>
+                                        ✨ Preferred Canonical Master Tags (Click to select):
+                                    </p>
+                                    <div className='flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 border border-[var(--border-color)] rounded-md bg-[var(--bg-secondary)]'>
+                                        {masterGenres.map((mg) => {
+                                            const isSelected = tags.includes(mg);
+                                            return (
+                                                <button
+                                                    key={mg}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (isSelected) {
+                                                            setTags(prev => prev.filter(t => t !== mg));
+                                                        } else {
+                                                            setTags(prev => [...prev, mg]);
+                                                        }
+                                                    }}
+                                                    className={`text-[10px] font-semibold px-2.5 py-1 rounded transition-colors cursor-pointer font-mono border ${isSelected
+                                                            ? 'bg-[#3b9c88] text-white border-[#318473]'
+                                                            : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border-color)] hover:text-[var(--text-primary)]'
+                                                        }`}
+                                                >
+                                                    #{mg} {isSelected ? '✓' : '+'}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
 
-                    <div className='space-y-1.5'>
-                        <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Summary / Description</label>
-                        <textarea placeholder="Describe the essence of this work..." className='w-full p-3 rounded-md bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-medium min-h-[110px] placeholder:text-[var(--text-muted)]' value={description} onChange={(e) => setDescription(e.target.value)} />
-                    </div>
+                        <div className='space-y-1.5'>
+                            <label className='text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider'>Summary / Description</label>
+                            <textarea placeholder="Describe the essence of this work..." className='w-full p-3 rounded-md bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none transition-colors text-xs font-medium min-h-[110px] placeholder:text-[var(--text-muted)]' value={description} onChange={(e) => setDescription(e.target.value)} />
+                        </div>
 
-                    <button 
-                        type="submit" 
-                        disabled={loading}
-                        className={`mt-2 bg-[#3b9c88] hover:bg-[#318473] text-white py-3.5 rounded-md font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                        onClick={newbook}
-                    >
-                        {loading ? (loadingStatus || 'Processing Registry...') : `Authorize Addition (${suxList.length > 0 ? suxList.length : 1} ${suxList.length === 1 ? 'Copy' : 'Copies'})`}
-                    </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className={`mt-2 bg-[#3b9c88] hover:bg-[#318473] text-white py-3.5 rounded-md font-bold uppercase tracking-wider text-xs transition-colors cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={newbook}
+                        >
+                            {loading ? (loadingStatus || 'Processing Registry...') : `Authorize Addition (${suxList.length > 0 ? suxList.length : 1} ${suxList.length === 1 ? 'Copy' : 'Copies'})`}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-  )
+    )
 }
 
 export default AddBook

@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Sparkles, 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  CheckCircle2, 
-  AlertCircle, 
-  Tag, 
-  Layers, 
-  BookOpen, 
-  Key, 
-  ListFilter, 
-  Clock, 
+import {
+  Sparkles,
+  Play,
+  Pause,
+  RotateCcw,
+  CheckCircle2,
+  AlertCircle,
+  Tag,
+  Layers,
+  BookOpen,
+  Key,
+  ListFilter,
+  Clock,
   ArrowRight,
   ShieldAlert,
   Edit3,
@@ -30,12 +30,12 @@ export default function GenreOrganizer() {
   // key would override the server's GEMINI_API_KEY and cause Gemini 401 errors.
   const [apiKey, setApiKey] = useState('');
   const [showKeyInput, setShowKeyInput] = useState(false);
-  
+
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
   const [currentActionMsg, setCurrentActionMsg] = useState('');
-  
+
   const [lastBatchResults, setLastBatchResults] = useState([]);
   const [isEditingMaster, setIsEditingMaster] = useState(false);
   const [masterGenresInput, setMasterGenresInput] = useState('');
@@ -240,7 +240,7 @@ export default function GenreOrganizer() {
       <Navbar />
 
       <div className="max-w-7xl mx-auto space-y-8">
-        
+
         {/* Header Title Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-900/40 p-6 md:p-8 rounded-3xl border border-gray-800/80 backdrop-blur-xl shadow-2xl">
           <div className="space-y-1">
@@ -307,7 +307,7 @@ export default function GenreOrganizer() {
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          
+
           {/* Total Books */}
           <div className="bg-[var(--bg-elevated)] border border-[var(--border-color)] p-5 rounded-lg">
             <div className="flex items-center justify-between mb-2">
@@ -330,7 +330,7 @@ export default function GenreOrganizer() {
             </div>
             {/* Progress bar */}
             <div className="w-full bg-[var(--bg-secondary)] h-2 rounded-full mt-3 overflow-hidden border border-[var(--border-color)]">
-              <div 
+              <div
                 className="bg-[#3b9c88] h-full transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
               />

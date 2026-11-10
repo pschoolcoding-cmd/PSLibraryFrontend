@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { matchesDualScript, matchesBookQuery } from '../utils/searchEngine';
 import {
-  BookOpen, Users, PlusCircle, Search, MoreVertical, Edit3, Trash2, 
-  Copy, Sparkles, Filter, ChevronLeft, ChevronRight, CheckCircle2, 
+  BookOpen, Users, PlusCircle, Search, MoreVertical, Edit3, Trash2,
+  Copy, Sparkles, Filter, ChevronLeft, ChevronRight, CheckCircle2,
   AlertCircle, Shield, UserPlus, RefreshCw, X, Upload, Calendar, ArrowRight,
-  Layers, Lock
+  Layers, Lock, RotateCcw, Clock, UserCheck, Bookmark
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pslibrarybackend.onrender.com';
@@ -14,10 +16,28 @@ const API_KEY = import.meta.env.VITE_API_KEY || 'supersecret';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
-  const { isAdmin, isSuperAdmin, isSubAdmin, canAccessAdminPanel, canManageRoles, canApproveBooks, reader } = useAuth();
+  const [searchParams] = useSearchParams();
+  const {
+    token,
+    isAdmin,
+    isSuperAdmin,
+    isLibrarian,
+    isSubAdmin,
+    canAccessAdminPanel,
+    canManageCirculation,
+    canManageRoles,
+    canApproveBooks,
+    markBookReturnedToShelf,
+    reader
+  } = useAuth();
+  const { t } = useTheme();
 
-  // Active Main Tab: 'books' | 'pending' | 'users' | 'admin-stats'
-  const [activeTab, setActiveTab] = useState('books');
+  // Active Main Tab: 'taken-books' | 'books' | 'pending' | 'users' | 'admin-stats'
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) return tabParam;
+    return reader?.role === 'librarian' ? 'taken-books' : 'books';
+  });
   const [subFilter, setSubFilter] = useState('all'); // 'all', 'borrowed', 'available' / 'readers', 'admins'
 
   // Search & Pagination
@@ -28,6 +48,9 @@ export default function AdminPanel() {
 
   // Data states
   const [books, setBooks] = useState([]);
+  const [takenBooks, setTakenBooks] = useState([]);
+  const [borrowRequests, setBorrowRequests] = useState([]);
+  const [returningBookId, setReturningBookId] = useState(null);
   const [pendingBooks, setPendingBooks] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [adminStatsList, setAdminStatsList] = useState([]);
@@ -68,23 +91,23 @@ export default function AdminPanel() {
   // Check Staff Access Authorization
   if (!canAccessAdminPanel) {
     return (
-      <div className="min-h-screen bg-[#f4f5f8] text-gray-900 flex flex-col justify-between font-[Inter]">
+      <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] flex flex-col justify-between font-[Inter]">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-20 h-20 rounded-3xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-500 mb-4 shadow-xl">
-            <Lock className="w-10 h-10" />
+          <div className="w-16 h-16 rounded-md bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 mb-4">
+            <Lock className="w-8 h-8" />
           </div>
-          <h2 className="text-3xl font-black font-[Outfit] uppercase tracking-tight text-gray-900 mb-2">
-            Restricted Admin Area
+          <h2 className="text-2xl font-bold uppercase tracking-tight text-[var(--text-primary)] mb-2">
+            {t('admin.restrictedTitle', 'Restricted Admin Area')}
           </h2>
-          <p className="text-gray-500 text-sm max-w-md mb-6">
-            This management panel is reserved exclusively for registered staff administrators and subadmins. Please log in with appropriate administrative credentials.
+          <p className="text-[var(--text-secondary)] text-xs max-w-md mb-6">
+            {t('admin.restrictedDesc', 'This management panel is reserved exclusively for registered staff administrators and subadmins. Please log in with appropriate administrative credentials.')}
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-xs uppercase tracking-widest px-8 py-4 rounded-2xl shadow-xl shadow-rose-500/20 transition-all cursor-pointer"
+            className="bg-[#337ab7] hover:bg-[#286090] text-white font-semibold text-xs uppercase tracking-wider px-6 py-3 rounded-md border border-[#2e6da4] transition-colors cursor-pointer"
           >
-            Authenticate Staff Login
+            {t('admin.authenticateBtn', 'Authenticate Staff Login')}
           </button>
         </div>
       </div>
@@ -114,7 +137,13 @@ export default function AdminPanel() {
         all: 'true',
         q: searchQuery
       });
-      const res = await fetch(`${API_BASE_URL}/books?${queryParams.toString()}`);
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (reader?._id) {
+        headers['x-requester-id'] = reader._id;
+        headers['x-requester-role'] = reader.role || 'admin';
+      }
+      const res = await fetch(`${API_BASE_URL}/books?${queryParams.toString()}`, { headers });
       if (res.ok) {
         const result = await res.json();
         setBooks(result.data || []);
@@ -127,6 +156,69 @@ export default function AdminPanel() {
       setLoading(false);
     }
   };
+
+  // Fetch Taken Books & Borrow Requests (Librarian Circulation List)
+  const fetchTakenBooks = async () => {
+    setLoading(true);
+    try {
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (reader?._id) {
+        headers['x-requester-id'] = reader._id;
+        headers['x-requester-role'] = reader.role || 'librarian';
+      }
+      const res = await fetch(`${API_BASE_URL}/books/circulation/taken`, { headers });
+      if (res.ok) {
+        const result = await res.json();
+        setTakenBooks(result.takenBooks || []);
+        setBorrowRequests(result.borrowRequests || []);
+      }
+    } catch (err) {
+      console.error('Error fetching taken books:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mark Returned Book as Back in Shelves (Librarian & Super Admin ONLY)
+  const handleMarkInShelves = async (book) => {
+    if (!canManageCirculation) {
+      alert('Only a Librarian or Super Admin can mark returned books as in the shelves.');
+      return;
+    }
+    if (
+      !window.confirm(
+        `Accept returned book "${book.name}" (${book.bid}) and mark it back on the library shelves?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setReturningBookId(book._id || book.bid);
+      await markBookReturnedToShelf(book._id || book.bid, book.bid);
+      await fetchTakenBooks();
+      fetchStats();
+      if (activeTab === 'books') fetchBooks();
+    } catch (err) {
+      alert(err.message || 'Failed to mark book as in shelves');
+    } finally {
+      setReturningBookId(null);
+    }
+  };
+
+  // Filtered Taken Books based on Search Query
+  const filteredTakenBooks = takenBooks.filter((b) => {
+    if (!searchQuery.trim()) return true;
+    const info = b.borrowerInfo || {};
+    return (
+      matchesBookQuery(b, searchQuery) ||
+      matchesDualScript(b.borrowed || '', searchQuery) ||
+      matchesDualScript(`${info.name || ''} ${info.surname || ''}`, searchQuery) ||
+      matchesDualScript(info.studentClass || '', searchQuery) ||
+      matchesDualScript(info.email || '', searchQuery)
+    );
+  });
 
   // Fetch Pending Approvals
   const fetchPendingBooks = async () => {
@@ -171,16 +263,15 @@ export default function AdminPanel() {
     }
   };
 
-  // Filtered Admin Stats based on search query
+  // Filtered Admin Stats based on dual-script search query
   const filteredAdminStats = adminStatsList.filter((entry) => {
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase().trim();
     return (
-      (entry.name && entry.name.toLowerCase().includes(q)) ||
-      (entry.surname && entry.surname.toLowerCase().includes(q)) ||
-      (entry.email && entry.email.toLowerCase().includes(q)) ||
-      (entry.role && entry.role.toLowerCase().includes(q)) ||
-      (entry.studentClass && entry.studentClass.toLowerCase().includes(q))
+      matchesDualScript(entry.name || '', searchQuery) ||
+      matchesDualScript(entry.surname || '', searchQuery) ||
+      matchesDualScript(entry.email || '', searchQuery) ||
+      matchesDualScript(entry.role || '', searchQuery) ||
+      matchesDualScript(entry.studentClass || '', searchQuery)
     );
   });
 
@@ -283,10 +374,13 @@ export default function AdminPanel() {
   useEffect(() => {
     fetchStats();
     fetchPendingBooks();
+    fetchTakenBooks();
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'books') {
+    if (activeTab === 'taken-books') {
+      fetchTakenBooks();
+    } else if (activeTab === 'books') {
       fetchBooks();
     } else if (activeTab === 'pending') {
       fetchPendingBooks();
@@ -297,14 +391,18 @@ export default function AdminPanel() {
     }
   }, [activeTab, page, searchQuery, subFilter]);
 
-  // Sync totalPages and totalCount for admin-stats tab
+  // Sync totalPages and totalCount for admin-stats & taken-books tabs
   useEffect(() => {
     if (activeTab === 'admin-stats') {
       const total = filteredAdminStats.length;
       setTotalPages(Math.max(1, Math.ceil(total / 15)));
       setTotalCount(total);
+    } else if (activeTab === 'taken-books') {
+      const total = filteredTakenBooks.length;
+      setTotalPages(Math.max(1, Math.ceil(total / 15)));
+      setTotalCount(total);
     }
-  }, [activeTab, adminStatsList, searchQuery]);
+  }, [activeTab, adminStatsList, takenBooks, searchQuery]);
 
   // Clamp page to valid range if page exceeds totalPages
   useEffect(() => {
@@ -547,10 +645,15 @@ export default function AdminPanel() {
     }
 
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-requester-role': reader?.role || 'superadmin'
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
       const res = await fetch(`${API_BASE_URL}/readers/${userForm._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userForm)
+        headers,
+        body: JSON.stringify({ ...userForm, requesterRole: reader?.role || 'superadmin' })
       });
 
       if (res.ok) {
@@ -621,10 +724,10 @@ export default function AdminPanel() {
 
       {/* Main Admin Dashboard Container */}
       <div className="max-w-[1440px] mx-auto pt-20 px-4 sm:px-6 lg:px-8">
-        
+
         {/* Top Dashboard Frame */}
         <div className="bg-[var(--bg-elevated)] rounded-lg shadow-xs border border-[var(--border-color)] overflow-hidden min-h-[820px] flex flex-col lg:flex-row">
-          
+
           {/* LEFT SIDEBAR MENU */}
           <aside className="w-full lg:w-64 bg-[var(--bg-sidebar)] border-r border-[var(--border-color)] p-5 flex flex-col justify-between shrink-0">
             <div>
@@ -638,7 +741,7 @@ export default function AdminPanel() {
                     PS Library
                   </h1>
                   <p className="text-[10px] uppercase font-bold tracking-widest text-[#3b9c88]">
-                    Admin Portal
+                    {t('admin.portalSubtitle', 'Admin Portal')}
                   </p>
                 </div>
               </div>
@@ -646,44 +749,63 @@ export default function AdminPanel() {
               {/* Navigation Links */}
               <nav className="space-y-1">
                 <button
-                  onClick={() => handleTabChange('books')}
+                  onClick={() => handleTabChange('taken-books')}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                    activeTab === 'books'
-                      ? 'bg-[#337ab7] text-white'
+                    activeTab === 'taken-books'
+                      ? 'bg-[#3b9c88] text-white'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <BookOpen className="w-4 h-4" />
-                    <span>Book Directory</span>
+                    <Bookmark className="w-4 h-4" />
+                    <span>{t('admin.takenBooksTab', 'Taken Books (Loans)')}</span>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
-                    activeTab === 'books' ? 'bg-white/20 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
-                  }`}>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
+                      activeTab === 'taken-books'
+                        ? 'bg-white/20 text-white'
+                        : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
+                    }`}
+                  >
+                    {takenBooks.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => handleTabChange('books')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${activeTab === 'books'
+                      ? 'bg-[#337ab7] text-white'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="w-4 h-4" />
+                    <span>{t('admin.bookDirectory', 'Book Directory')}</span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${activeTab === 'books' ? 'bg-white/20 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
+                    }`}>
                     {stats.totalBooks}
                   </span>
                 </button>
 
                 <button
                   onClick={() => handleTabChange('pending')}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                    activeTab === 'pending'
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${activeTab === 'pending'
                       ? 'bg-amber-600 text-white'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className={`w-4 h-4 ${activeTab === 'pending' ? 'text-white' : 'text-amber-500'}`} />
-                    <span>Pending Approvals</span>
+                    <span>{t('admin.pendingApprovals', 'Pending Approvals')}</span>
                   </div>
                   {pendingCount > 0 ? (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500 text-white">
                       {pendingCount} NEW
                     </span>
                   ) : (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
-                      activeTab === 'pending' ? 'bg-white/20 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
-                    }`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${activeTab === 'pending' ? 'bg-white/20 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
+                      }`}>
                       0
                     </span>
                   )}
@@ -691,38 +813,34 @@ export default function AdminPanel() {
 
                 <button
                   onClick={() => handleTabChange('users')}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                    activeTab === 'users'
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${activeTab === 'users'
                       ? 'bg-[#337ab7] text-white'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Users className="w-4 h-4" />
-                    <span>User Directory</span>
+                    <span>{t('admin.userDirectory', 'User Directory')}</span>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
-                    activeTab === 'users' ? 'bg-white/20 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
-                  }`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${activeTab === 'users' ? 'bg-white/20 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-color)]'
+                    }`}>
                     {stats.totalReaders}
                   </span>
                 </button>
 
                 <button
                   onClick={() => handleTabChange('admin-stats')}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                    activeTab === 'admin-stats'
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${activeTab === 'admin-stats'
                       ? 'bg-[#3b9c88] text-white'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Shield className={`w-4 h-4 ${activeTab === 'admin-stats' ? 'text-white' : 'text-[#3b9c88]'}`} />
-                    <span>Admins & Statistics</span>
+                    <span>{t('admin.adminsStats', 'Admins & Statistics')}</span>
                   </div>
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
-                    activeTab === 'admin-stats' ? 'bg-white/20 text-white' : 'bg-[#3b9c88]/15 text-[#3b9c88]'
-                  }`}>
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${activeTab === 'admin-stats' ? 'bg-white/20 text-white' : 'bg-[#3b9c88]/15 text-[#3b9c88]'
+                    }`}>
                     STATS
                   </span>
                 </button>
@@ -733,7 +851,7 @@ export default function AdminPanel() {
                 >
                   <div className="flex items-center gap-3">
                     <Sparkles className="w-4 h-4 text-[#337ab7]" />
-                    <span>AI Genre Normalizer</span>
+                    <span>{t('admin.genreNormalizer', 'AI Genre Normalizer')}</span>
                   </div>
                 </button>
 
@@ -743,7 +861,7 @@ export default function AdminPanel() {
                 >
                   <div className="flex items-center gap-3">
                     <PlusCircle className="w-4 h-4 text-[#3b9c88]" />
-                    <span>Catalog Intake Form</span>
+                    <span>{t('admin.catalogIntake', 'Catalog Intake Form')}</span>
                   </div>
                 </button>
               </nav>
@@ -754,7 +872,7 @@ export default function AdminPanel() {
               <div className="flex items-center justify-between px-3 py-2 bg-[var(--bg-elevated)] rounded-md border border-[var(--border-color)]">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-semibold text-[var(--text-primary)]">Catalog Online</span>
+                  <span className="text-xs font-semibold text-[var(--text-primary)]">{t('admin.catalogOnline', 'Catalog Online')}</span>
                 </div>
                 <span className="text-[10px] font-mono text-[var(--text-muted)] font-semibold">v2.4</span>
               </div>
@@ -763,23 +881,23 @@ export default function AdminPanel() {
 
           {/* RIGHT MAIN CONTENT AREA */}
           <main className="flex-1 p-6 lg:p-8 flex flex-col justify-between overflow-x-hidden bg-[var(--bg-elevated)]">
-            
+
             <div>
               {/* Top Header Bar */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-5 border-b border-[var(--border-color)]">
-                
+
                 {/* Search Box */}
                 <div className="relative w-full sm:w-80">
                   <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="Search books, ISBN, or users..."
+                    placeholder={t('admin.searchPlaceholder', 'Search books, ISBN, or users...')}
                     value={searchQuery}
                     onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                     className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] focus:border-[var(--accent-primary)] outline-none rounded-md pl-10 pr-4 py-2 text-xs font-medium text-[var(--text-primary)] transition-colors placeholder:text-[var(--text-muted)]"
                   />
                   {searchQuery && (
-                    <button 
+                    <button
                       onClick={() => setSearchQuery('')}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     >
@@ -791,7 +909,7 @@ export default function AdminPanel() {
                 {/* Right Profile & Mode Controls */}
                 <div className="flex items-center gap-3 self-end sm:self-auto">
                   <div className="hidden sm:flex items-center gap-2 bg-[var(--bg-secondary)] px-3 py-1.5 rounded-md border border-[var(--border-color)]">
-                    <span className="text-xs font-semibold text-[var(--text-secondary)]">System Active</span>
+                    <span className="text-xs font-semibold text-[var(--text-secondary)]">{t('admin.systemActive', 'System Active')}</span>
                     <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 border border-emerald-500 flex items-center justify-center">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                     </div>
@@ -807,7 +925,13 @@ export default function AdminPanel() {
                     <div className="text-left leading-tight">
                       <p className="text-xs font-bold text-[var(--text-primary)]">{reader?.name || 'Admin User'}</p>
                       <p className="text-[10px] text-[#3b9c88] font-bold uppercase tracking-wider">
-                        {reader?.role === 'superadmin' ? 'Super Admin' : reader?.role === 'admin' ? 'Admin' : 'Subadmin'}
+                        {reader?.role === 'superadmin'
+                          ? t('nav.roleSuperAdmin', 'Super Admin')
+                          : reader?.role === 'librarian'
+                          ? t('nav.roleLibrarian', 'Librarian')
+                          : reader?.role === 'admin'
+                          ? t('nav.roleAdmin', 'Admin')
+                          : t('nav.roleSubadmin', 'Subadmin')}
                       </p>
                     </div>
                   </div>
@@ -819,16 +943,18 @@ export default function AdminPanel() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">
-                    {activeTab === 'books' && 'Book Management Directory'}
-                    {activeTab === 'pending' && 'Pending Approval Queue'}
-                    {activeTab === 'users' && 'User & Reader Directory'}
-                    {activeTab === 'admin-stats' && 'Admins & Contribution Statistics'}
+                    {activeTab === 'taken-books' && t('admin.takenBooksTitle', 'Librarian Taken Books & Borrow Requests')}
+                    {activeTab === 'books' && t('admin.bookManagementTitle', 'Book Management Directory')}
+                    {activeTab === 'pending' && t('admin.pendingQueueTitle', 'Pending Approval Queue')}
+                    {activeTab === 'users' && t('admin.userManagementTitle', 'User & Reader Directory')}
+                    {activeTab === 'admin-stats' && t('admin.statsTitle', 'Admins & Contribution Statistics')}
                   </h2>
                   <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                    {activeTab === 'books' && 'Browse, edit metadata, update cover art, or generate new SUX copies.'}
-                    {activeTab === 'pending' && 'Review and approve subadmin book submissions before they appear in the public catalog.'}
-                    {activeTab === 'users' && 'View system users, change roles, edit accounts, or reset credentials.'}
-                    {activeTab === 'admin-stats' && 'Track contribution leaderboard, review staff performance, and manage roles.'}
+                    {activeTab === 'taken-books' && t('admin.takenBooksDesc', 'Track all books currently taken by students, view student borrow requests, and mark returned books back in the shelves.')}
+                    {activeTab === 'books' && t('admin.bookManagementDesc', 'Browse, edit metadata, update cover art, or generate new SUX copies.')}
+                    {activeTab === 'pending' && t('admin.pendingQueueDesc', 'Review and approve subadmin book submissions before they appear in the public catalog.')}
+                    {activeTab === 'users' && t('admin.userManagementDesc', 'View system users, change roles, edit accounts, or reset credentials.')}
+                    {activeTab === 'admin-stats' && t('admin.statsDesc', 'Track contribution leaderboard, review staff performance, and manage roles.')}
                   </p>
                 </div>
 
@@ -840,7 +966,7 @@ export default function AdminPanel() {
                       className="bg-[#337ab7] hover:bg-[#286090] text-white font-semibold text-xs px-4 py-2 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <PlusCircle className="w-4 h-4" />
-                      Add New Title
+                      {t('admin.addNewTitle', 'Add New Title')}
                     </button>
                   )}
 
@@ -853,11 +979,255 @@ export default function AdminPanel() {
                       className="bg-[#3b9c88] hover:bg-[#318473] text-white font-semibold text-xs px-4 py-2 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <UserPlus className="w-4 h-4" />
-                      Create Student / Admin
+                      {t('admin.createUserBtn', 'Create Student / Admin')}
                     </button>
                   )}
                 </div>
               </div>
+
+              {/* TAKEN BOOKS & BORROW REQUESTS TAB (LIBRARIAN CIRCULATION) */}
+              {activeTab === 'taken-books' && (
+                <div className="space-y-6">
+                  {/* Pending Student Borrow Requests Section */}
+                  {borrowRequests.length > 0 && (
+                    <div className="bg-[var(--bg-secondary)] border border-amber-500/30 rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-amber-500 flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          Pending Student Borrow Requests ({borrowRequests.length})
+                        </h3>
+                        <span className="text-[11px] text-[var(--text-secondary)]">
+                          Open the book view page to select a SUX copy and issue to the student
+                        </span>
+                      </div>
+
+                      <div className="divide-y divide-[var(--border-color)] bg-[var(--bg-elevated)] rounded border border-[var(--border-color)]">
+                        {borrowRequests.map((req, idx) => (
+                          <div
+                            key={`${req.studentId}-${req.bookId}-${idx}`}
+                            className="p-3.5 flex flex-wrap items-center justify-between gap-4 hover:bg-[var(--bg-hover)] transition-colors"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-9 h-12 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)] overflow-hidden shrink-0 flex items-center justify-center">
+                                {req.image ? (
+                                  <img
+                                    src={req.image}
+                                    alt={req.bookName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <BookOpen className="w-4 h-4 text-[var(--text-muted)]" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+                                  {req.bookName}
+                                </p>
+                                <p className="text-[11px] text-[var(--text-secondary)]">
+                                  Requested by:{' '}
+                                  <span className="font-semibold text-[var(--text-primary)]">
+                                    {req.studentName}
+                                  </span>
+                                  {req.studentClass ? ` • Class ${req.studentClass}` : ''}
+                                  <span className="ml-2 font-mono text-[10px] text-[var(--text-muted)]">
+                                    (ID: #{String(req.studentId).slice(-6).toUpperCase()})
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                navigate(
+                                  `/book/${encodeURIComponent(
+                                    req.bookId
+                                  )}?studentId=${encodeURIComponent(
+                                    req.studentId
+                                  )}&studentName=${encodeURIComponent(
+                                    req.studentName
+                                  )}&studentEmail=${encodeURIComponent(
+                                    req.studentEmail || ''
+                                  )}&studentClass=${encodeURIComponent(req.studentClass || '')}`
+                                )
+                              }
+                              className="bg-[#337ab7] hover:bg-[#286090] text-white font-semibold text-xs px-3.5 py-1.5 rounded flex items-center gap-1.5 cursor-pointer transition-colors"
+                            >
+                              <UserCheck className="w-3.5 h-3.5" />
+                              <span>Go to Book &amp; Give SUX Copy</span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Active Taken Books Table */}
+                  <div className="bg-[var(--bg-elevated)] rounded-lg border border-[var(--border-color)] overflow-hidden">
+                    <div className="px-5 py-3.5 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                        Currently Taken Books ({filteredTakenBooks.length})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={fetchTakenBooks}
+                        className="text-xs font-semibold text-[#337ab7] hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Refresh</span>
+                      </button>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-[var(--border-color)] bg-[var(--bg-secondary)] text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                            <th className="py-3 px-4">SUX / Barcode</th>
+                            <th className="py-3 px-4">Book Title</th>
+                            <th className="py-3 px-4">Borrowed Student ID</th>
+                            <th className="py-3 px-4">Student Name &amp; Class</th>
+                            <th className="py-3 px-4">Date Taken</th>
+                            <th className="py-3 px-4 text-right">Circulation Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[var(--border-color)] text-xs font-medium text-[var(--text-primary)]">
+                          {loading ? (
+                            <tr>
+                              <td colSpan={6} className="py-16 text-center text-[var(--text-secondary)]">
+                                Loading taken books...
+                              </td>
+                            </tr>
+                          ) : filteredTakenBooks.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="py-14 text-center text-[var(--text-secondary)]">
+                                No books are currently marked as taken matching your search.
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredTakenBooks
+                              .slice((page - 1) * 15, page * 15)
+                              .map((book) => {
+                                const suxParts = String(book.bid || '').split('-');
+                                const suxNum =
+                                  suxParts.length > 1 ? suxParts.slice(1).join('-') : '1';
+                                const info = book.borrowerInfo || {};
+                                const rawBorrowed = String(book.borrowed || '');
+                                const isNoAccount =
+                                  info.hasAccount === false ||
+                                  rawBorrowed.startsWith('no-account:');
+                                const fallbackParts = rawBorrowed
+                                  .replace(/^no-account:/, '')
+                                  .split(':');
+                                const studentDisplayName = info.name
+                                  ? `${info.name} ${info.surname || ''}`.trim()
+                                  : isNoAccount
+                                  ? fallbackParts[1] || rawBorrowed
+                                  : 'Registered Student';
+                                const studentDisplayClass =
+                                  info.studentClass ||
+                                  (isNoAccount ? fallbackParts[0] : '') ||
+                                  '';
+
+                                return (
+                                  <tr
+                                    key={book._id || book.bid}
+                                    className="hover:bg-[var(--bg-hover)] transition-colors"
+                                  >
+                                    <td className="py-3.5 px-4 font-mono">
+                                      <span className="px-2 py-0.5 rounded bg-[#337ab7]/15 text-[#337ab7] border border-[#337ab7]/30 font-bold text-[11px]">
+                                        SUX #{suxNum}
+                                      </span>
+                                      <div className="text-[10px] text-[var(--text-secondary)] mt-1">
+                                        {book.bid}
+                                      </div>
+                                    </td>
+
+                                    <td className="py-3.5 px-4">
+                                      <button
+                                        type="button"
+                                        onClick={() => navigate(`/book/${book._id || book.bid}`)}
+                                        className="font-bold text-[var(--text-primary)] hover:text-[#337ab7] text-left cursor-pointer"
+                                      >
+                                        {book.name}
+                                      </button>
+                                      <div className="text-[11px] text-[#3b9c88]">
+                                        {book.author}
+                                      </div>
+                                    </td>
+
+                                    <td className="py-3.5 px-4 font-mono text-[11px]">
+                                      {isNoAccount ? (
+                                        <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30 font-sans font-bold text-[10px]">
+                                          No Account
+                                        </span>
+                                      ) : (
+                                        <span className="px-2 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)]">
+                                          {rawBorrowed}
+                                        </span>
+                                      )}
+                                    </td>
+
+                                    <td className="py-3.5 px-4">
+                                      <div className="font-bold text-[var(--text-primary)]">
+                                        {studentDisplayName}
+                                      </div>
+                                      <div className="text-[11px] text-[var(--text-secondary)]">
+                                        {studentDisplayClass
+                                          ? `Class: ${studentDisplayClass}`
+                                          : ''}
+                                        {info.email ? ` • ${info.email}` : ''}
+                                      </div>
+                                    </td>
+
+                                    <td className="py-3.5 px-4 font-mono text-[11px] text-[var(--text-secondary)]">
+                                      <div>{book.whentaken || '—'}</div>
+                                      {info.dueDate && (
+                                        <div className="text-[10px] text-amber-500">
+                                          Due: {new Date(info.dueDate).toLocaleDateString()}
+                                        </div>
+                                      )}
+                                    </td>
+
+                                    <td className="py-3.5 px-4 text-right">
+                                      <div className="inline-flex items-center gap-2">
+                                        {canManageCirculation && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMarkInShelves(book)}
+                                            disabled={
+                                              returningBookId === (book._id || book.bid)
+                                            }
+                                            className="px-3 py-1.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 border border-emerald-500/30 font-semibold text-xs inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                                          >
+                                            <RotateCcw className="w-3.5 h-3.5" />
+                                            <span>
+                                              {returningBookId === (book._id || book.bid)
+                                                ? 'Updating...'
+                                                : 'Mark in Shelves'}
+                                            </span>
+                                          </button>
+                                        )}
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            navigate(`/book/${book._id || book.bid}`)
+                                          }
+                                          className="px-2.5 py-1.5 rounded border border-[var(--border-color)] bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-xs font-semibold text-[var(--text-primary)] cursor-pointer"
+                                        >
+                                          View Book
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* PENDING APPROVALS TAB */}
               {activeTab === 'pending' && (
@@ -958,6 +1328,7 @@ export default function AdminPanel() {
                       const medals = ['🥇', '🥈', '🥉'];
                       const roleColors = {
                         superadmin: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+                        librarian: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
                         admin: 'bg-[#337ab7]/15 text-[#337ab7] border-[#337ab7]/30',
                         subadmin: 'bg-[#3b9c88]/15 text-[#3b9c88] border-[#3b9c88]/30',
                         reader: 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)]',
@@ -1005,6 +1376,7 @@ export default function AdminPanel() {
                               >
                                 <option value="reader">Reader</option>
                                 <option value="subadmin">Subadmin</option>
+                                <option value="librarian">Librarian</option>
                                 <option value="admin">Admin</option>
                                 <option value="superadmin">Super Admin</option>
                               </select>
@@ -1019,152 +1391,273 @@ export default function AdminPanel() {
 
               {/* BOOKS & USERS TABLE */}
               {(activeTab === 'books' || activeTab === 'users') && (
-              <div className="bg-[var(--bg-elevated)] rounded-lg border border-[var(--border-color)] overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    
-                    <thead>
-                      <tr className="border-b border-[var(--border-color)] bg-[var(--bg-secondary)] text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-                        <th className="py-3.5 px-5">Id</th>
-                        <th className="py-3.5 px-5">{activeTab === 'books' ? 'Book Title & Cover' : 'User Profile'}</th>
-                        <th className="py-3.5 px-5">{activeTab === 'books' ? 'Author / Creator' : 'Email Address'}</th>
-                        <th className="py-3.5 px-5">{activeTab === 'books' ? 'Borrowed Status' : 'Role'}</th>
-                        <th className="py-3.5 px-5">{activeTab === 'books' ? 'Added By' : 'Class / Details'}</th>
-                        <th className="py-3.5 px-5 text-right">Action</th>
-                      </tr>
-                    </thead>
+                <div className="bg-[var(--bg-elevated)] rounded-lg border border-[var(--border-color)] overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
 
-                    <tbody className="divide-y divide-[var(--border-color)] text-xs font-medium text-[var(--text-primary)]">
-                      
-                      {loading ? (
-                        <tr>
-                          <td colSpan={6} className="py-16 text-center text-[var(--text-secondary)]">
-                            <div className="flex flex-col items-center justify-center gap-3">
-                              <div className="w-7 h-7 border-2 border-[#337ab7]/20 border-t-[#337ab7] rounded-full animate-spin" />
-                              <span className="font-semibold text-xs">Loading directory data...</span>
-                            </div>
-                          </td>
+                      <thead>
+                        <tr className="border-b border-[var(--border-color)] bg-[var(--bg-secondary)] text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                          <th className="py-3.5 px-5">{t('admin.headers.id', 'Id')}</th>
+                          <th className="py-3.5 px-5">{activeTab === 'books' ? t('admin.headers.bookTitleCover', 'Book Title & Cover') : t('admin.headers.userProfile', 'User Profile')}</th>
+                          <th className="py-3.5 px-5">{activeTab === 'books' ? t('admin.headers.authorCreator', 'Author / Creator') : t('admin.headers.emailAddress', 'Email Address')}</th>
+                          <th className="py-3.5 px-5">{activeTab === 'books' ? t('admin.headers.borrowedStatus', 'Borrowed Status') : t('admin.headers.role', 'Role')}</th>
+                          <th className="py-3.5 px-5">{activeTab === 'books' ? t('admin.headers.addedBy', 'Added By') : t('admin.headers.classDetails', 'Class / Details')}</th>
+                          <th className="py-3.5 px-5 text-right">{t('admin.headers.action', 'Action')}</th>
                         </tr>
-                      ) : activeTab === 'books' ? (
-                        // BOOKS LIST ROWS
-                        books.length === 0 ? (
+                      </thead>
+
+                      <tbody className="divide-y divide-[var(--border-color)] text-xs font-medium text-[var(--text-primary)]">
+
+                        {loading ? (
                           <tr>
-                            <td colSpan={6} className="py-12 text-center text-[var(--text-secondary)]">
-                              No book records found matching your filter criteria.
+                            <td colSpan={6} className="py-16 text-center text-[var(--text-secondary)]">
+                              <div className="flex flex-col items-center justify-center gap-3">
+                                <div className="w-7 h-7 border-2 border-[#337ab7]/20 border-t-[#337ab7] rounded-full animate-spin" />
+                                <span className="font-semibold text-xs">{t('admin.loadingDirectory', 'Loading directory data...')}</span>
+                              </div>
                             </td>
                           </tr>
+                        ) : activeTab === 'books' ? (
+                          // BOOKS LIST ROWS
+                          books.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="py-12 text-center text-[var(--text-secondary)]">
+                                {t('admin.noBooksFound', 'No book records found matching your filter criteria.')}
+                              </td>
+                            </tr>
+                          ) : (
+                            books.map((book) => {
+                              const isBorrowed = book.borrowed && book.borrowed !== '0' && book.borrowed !== '';
+                              return (
+                                <tr key={book._id} className="hover:bg-[var(--bg-hover)] transition-colors group">
+
+                                  {/* BID Code */}
+                                  <td className="py-3.5 px-5 font-mono font-semibold text-[var(--text-secondary)] text-[11px]">
+                                    #{book.bid || book._id.slice(-6)}
+                                  </td>
+
+                                  {/* Cover & Name */}
+                                  <td className="py-3.5 px-5">
+                                    <div className="flex items-center gap-3.5">
+                                      <img
+                                        src={book.image || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200'}
+                                        alt={book.name}
+                                        className="w-9 h-13 object-cover rounded border border-[var(--border-color)] shrink-0 bg-[var(--bg-secondary)]"
+                                        onError={(e) => {
+                                          e.target.src = 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200';
+                                        }}
+                                      />
+                                      <div>
+                                        <p className="font-bold text-[var(--text-primary)] group-hover:text-[#337ab7] transition-colors line-clamp-1">
+                                          {book.name}
+                                        </p>
+                                        <p className="text-[10px] text-[var(--text-muted)] font-mono">
+                                          {book.whentaken ? `Intake: ${book.whentaken}` : 'Intake: 01/04/2026'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </td>
+
+                                  {/* Author */}
+                                  <td className="py-3.5 px-5 font-semibold text-[#3b9c88]">
+                                    {book.author}
+                                  </td>
+
+                                  {/* Borrowed Status */}
+                                  <td className="py-3.5 px-5">
+                                    {isBorrowed ? (
+                                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                        {t('admin.borrowedPrefix', 'Borrowed')}: {book.borrowed}
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                        {t('admin.inLibraryStock', 'In Library Stock')}
+                                      </span>
+                                    )}
+                                  </td>
+
+                                  {/* Added By */}
+                                  <td className="py-3.5 px-5">
+                                    <div className="flex flex-col gap-1">
+                                      <span className="text-xs font-semibold text-[var(--text-secondary)] truncate max-w-[140px]">
+                                        {book.whoadded && book.whoadded !== 'none' ? book.whoadded : '—'}
+                                      </span>
+                                      {book.addedByRole && (
+                                        <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded w-fit border ${book.addedByRole === 'superadmin' ? 'bg-purple-500/15 text-purple-400 border-purple-500/30' :
+                                            book.addedByRole === 'admin' ? 'bg-[#337ab7]/15 text-[#337ab7] border-[#337ab7]/30' :
+                                              book.addedByRole === 'subadmin' ? 'bg-[#3b9c88]/15 text-[#3b9c88] border-[#3b9c88]/30' :
+                                                'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)]'
+                                          }`}>
+                                          {book.addedByRole}
+                                        </span>
+                                      )}
+                                      {!book.isApproved && (
+                                        <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded w-fit bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                                          {t('admin.pendingBadge', 'Pending')}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+
+                                  {/* 3-Dots Action Popup Menu */}
+                                  <td className="py-3.5 px-5 text-right relative">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setActionMenuId(actionMenuId === book._id ? null : book._id);
+                                      }}
+                                      className="p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
+                                    >
+                                      <MoreVertical className="w-4 h-4" />
+                                    </button>
+
+                                    {/* POPUP ACTION DROPDOWN */}
+                                    {actionMenuId === book._id && (
+                                      <div className="absolute right-6 top-11 w-48 bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-lg shadow-xl p-1.5 z-50 text-left">
+                                        <button
+                                          onClick={() => {
+                                            setActionMenuId(null);
+                                            handleOpenEditBook(book);
+                                          }}
+                                          className="w-full px-3 py-2 rounded-md text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2.5 transition-colors cursor-pointer"
+                                        >
+                                          <Edit3 className="w-3.5 h-3.5 text-[#337ab7]" />
+                                          Edit Details & Photo
+                                        </button>
+
+                                        <button
+                                          onClick={() => {
+                                            setActionMenuId(null);
+                                            handleOpenSuxModal(book);
+                                          }}
+                                          className="w-full px-3 py-2 rounded-md text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2.5 transition-colors cursor-pointer mt-0.5"
+                                        >
+                                          <Copy className="w-3.5 h-3.5 text-[#3b9c88]" />
+                                          + Add SUX Copy
+                                        </button>
+
+                                        <div className="h-px bg-[var(--border-color)] my-1" />
+
+                                        <button
+                                          onClick={() => {
+                                            setActionMenuId(null);
+                                            handleDeleteBook(book._id);
+                                          }}
+                                          className="w-full px-3 py-2 rounded-md text-xs font-semibold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                          Delete Book Entry
+                                        </button>
+                                      </div>
+                                    )}
+                                  </td>
+
+                                </tr>
+                              );
+                            })
+                          )
                         ) : (
-                          books.map((book) => {
-                            const isBorrowed = book.borrowed && book.borrowed !== '0' && book.borrowed !== '';
-                            return (
-                              <tr key={book._id} className="hover:bg-[var(--bg-hover)] transition-colors group">
-                                
-                                {/* BID Code */}
+                          // USERS LIST ROWS
+                          users.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="py-12 text-center text-[var(--text-secondary)]">
+                                No user accounts found matching your filter criteria.
+                              </td>
+                            </tr>
+                          ) : (
+                            users.map((u) => (
+                              <tr key={u._id} className="hover:bg-[var(--bg-hover)] transition-colors group">
+
+                                {/* User ID */}
                                 <td className="py-3.5 px-5 font-mono font-semibold text-[var(--text-secondary)] text-[11px]">
-                                  #{book.bid || book._id.slice(-6)}
+                                  #{u._id.slice(-6)}
                                 </td>
 
-                                {/* Cover & Name */}
+                                {/* Profile Avatar & Name */}
                                 <td className="py-3.5 px-5">
                                   <div className="flex items-center gap-3.5">
                                     <img
-                                      src={book.image || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200'}
-                                      alt={book.name}
-                                      className="w-9 h-13 object-cover rounded border border-[var(--border-color)] shrink-0 bg-[var(--bg-secondary)]"
-                                      onError={(e) => {
-                                        e.target.src = 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=200';
-                                      }}
+                                      src={u.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`}
+                                      alt={u.name}
+                                      className="w-8 h-8 object-cover rounded-md border border-[var(--border-color)] shrink-0 bg-[var(--bg-secondary)]"
                                     />
                                     <div>
-                                      <p className="font-bold text-[var(--text-primary)] group-hover:text-[#337ab7] transition-colors line-clamp-1">
-                                        {book.name}
+                                      <p className="font-bold text-[var(--text-primary)] group-hover:text-[#337ab7] transition-colors">
+                                        {u.name} {u.surname}
                                       </p>
-                                      <p className="text-[10px] text-[var(--text-muted)] font-mono">
-                                        {book.whentaken ? `Intake: ${book.whentaken}` : 'Intake: 01/04/2026'}
-                                      </p>
+                                      {u.isExternal && (
+                                        <span className="text-[9px] font-semibold text-purple-400 bg-purple-500/15 px-1.5 py-0.5 rounded">
+                                          External Visitor
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </td>
 
-                                {/* Author */}
-                                <td className="py-3.5 px-5 font-semibold text-[#3b9c88]">
-                                  {book.author}
+                                {/* Email */}
+                                <td className="py-3.5 px-5 font-medium text-[var(--text-secondary)]">
+                                  {u.email}
                                 </td>
 
-                                {/* Borrowed Status */}
+                                {/* Role Badge */}
                                 <td className="py-3.5 px-5">
-                                  {isBorrowed ? (
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                      Borrowed: {book.borrowed}
+                                  {u.role === 'superadmin' ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">
+                                      <Shield className="w-3 h-3" />
+                                      Super Admin
+                                    </span>
+                                  ) : u.role === 'librarian' ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                                      <BookOpen className="w-3 h-3" />
+                                      Librarian
+                                    </span>
+                                  ) : u.role === 'admin' ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#337ab7]/15 text-[#337ab7] border border-[#337ab7]/30">
+                                      <Shield className="w-3 h-3" />
+                                      Admin
+                                    </span>
+                                  ) : u.role === 'subadmin' ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#3b9c88]/15 text-[#3b9c88] border border-[#3b9c88]/30">
+                                      Subadmin
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                      In Library Stock
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-semibold bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-color)]">
+                                      Reader
                                     </span>
                                   )}
                                 </td>
 
-                                {/* Added By */}
-                                <td className="py-3.5 px-5">
-                                  <div className="flex flex-col gap-1">
-                                    <span className="text-xs font-semibold text-[var(--text-secondary)] truncate max-w-[140px]">
-                                      {book.whoadded && book.whoadded !== 'none' ? book.whoadded : '—'}
-                                    </span>
-                                    {book.addedByRole && (
-                                      <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded w-fit border ${
-                                        book.addedByRole === 'superadmin' ? 'bg-purple-500/15 text-purple-400 border-purple-500/30' :
-                                        book.addedByRole === 'admin' ? 'bg-[#337ab7]/15 text-[#337ab7] border-[#337ab7]/30' :
-                                        book.addedByRole === 'subadmin' ? 'bg-[#3b9c88]/15 text-[#3b9c88] border-[#3b9c88]/30' :
-                                        'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)]'
-                                      }`}>
-                                        {book.addedByRole}
-                                      </span>
-                                    )}
-                                    {!book.isApproved && (
-                                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded w-fit bg-amber-500/15 text-amber-500 border border-amber-500/30">
-                                        Pending
-                                      </span>
-                                    )}
-                                  </div>
+                                {/* Class / Details */}
+                                <td className="py-3.5 px-5 font-medium text-[var(--text-secondary)]">
+                                  {u.studentClass ? `Class: ${u.studentClass}` : 'Standard Account'}
                                 </td>
 
-                                {/* 3-Dots Action Popup Menu */}
+                                {/* Action Menu */}
                                 <td className="py-3.5 px-5 text-right relative">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setActionMenuId(actionMenuId === book._id ? null : book._id);
+                                      setActionMenuId(actionMenuId === u._id ? null : u._id);
                                     }}
                                     className="p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
                                   >
                                     <MoreVertical className="w-4 h-4" />
                                   </button>
 
-                                  {/* POPUP ACTION DROPDOWN */}
-                                  {actionMenuId === book._id && (
+                                  {/* POPUP ACTION DROPDOWN FOR USER */}
+                                  {actionMenuId === u._id && (
                                     <div className="absolute right-6 top-11 w-48 bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-lg shadow-xl p-1.5 z-50 text-left">
                                       <button
                                         onClick={() => {
                                           setActionMenuId(null);
-                                          handleOpenEditBook(book);
+                                          handleOpenEditUser(u);
                                         }}
                                         className="w-full px-3 py-2 rounded-md text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2.5 transition-colors cursor-pointer"
                                       >
                                         <Edit3 className="w-3.5 h-3.5 text-[#337ab7]" />
-                                        Edit Details & Photo
-                                      </button>
-
-                                      <button
-                                        onClick={() => {
-                                          setActionMenuId(null);
-                                          handleOpenSuxModal(book);
-                                        }}
-                                        className="w-full px-3 py-2 rounded-md text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2.5 transition-colors cursor-pointer mt-0.5"
-                                      >
-                                        <Copy className="w-3.5 h-3.5 text-[#3b9c88]" />
-                                        + Add SUX Copy
+                                        Edit User Profile
                                       </button>
 
                                       <div className="h-px bg-[var(--border-color)] my-1" />
@@ -1172,144 +1665,27 @@ export default function AdminPanel() {
                                       <button
                                         onClick={() => {
                                           setActionMenuId(null);
-                                          handleDeleteBook(book._id);
+                                          handleDeleteUser(u._id);
                                         }}
                                         className="w-full px-3 py-2 rounded-md text-xs font-semibold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
                                       >
                                         <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                                        Delete Book Entry
+                                        Delete Account
                                       </button>
                                     </div>
                                   )}
                                 </td>
 
                               </tr>
-                            );
-                          })
-                        )
-                      ) : (
-                        // USERS LIST ROWS
-                        users.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="py-12 text-center text-[var(--text-secondary)]">
-                              No user accounts found matching your filter criteria.
-                            </td>
-                          </tr>
-                        ) : (
-                          users.map((u) => (
-                            <tr key={u._id} className="hover:bg-[var(--bg-hover)] transition-colors group">
-                              
-                              {/* User ID */}
-                              <td className="py-3.5 px-5 font-mono font-semibold text-[var(--text-secondary)] text-[11px]">
-                                #{u._id.slice(-6)}
-                              </td>
+                            ))
+                          )
+                        )}
 
-                              {/* Profile Avatar & Name */}
-                              <td className="py-3.5 px-5">
-                                <div className="flex items-center gap-3.5">
-                                  <img
-                                    src={u.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`}
-                                    alt={u.name}
-                                    className="w-8 h-8 object-cover rounded-md border border-[var(--border-color)] shrink-0 bg-[var(--bg-secondary)]"
-                                  />
-                                  <div>
-                                    <p className="font-bold text-[var(--text-primary)] group-hover:text-[#337ab7] transition-colors">
-                                      {u.name} {u.surname}
-                                    </p>
-                                    {u.isExternal && (
-                                      <span className="text-[9px] font-semibold text-purple-400 bg-purple-500/15 px-1.5 py-0.5 rounded">
-                                        External Visitor
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </td>
+                      </tbody>
 
-                              {/* Email */}
-                              <td className="py-3.5 px-5 font-medium text-[var(--text-secondary)]">
-                                {u.email}
-                              </td>
-
-                              {/* Role Badge */}
-                              <td className="py-3.5 px-5">
-                                {u.role === 'superadmin' ? (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">
-                                    <Shield className="w-3 h-3" />
-                                    Super Admin
-                                  </span>
-                                ) : u.role === 'admin' ? (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#337ab7]/15 text-[#337ab7] border border-[#337ab7]/30">
-                                    <Shield className="w-3 h-3" />
-                                    Admin
-                                  </span>
-                                ) : u.role === 'subadmin' ? (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#3b9c88]/15 text-[#3b9c88] border border-[#3b9c88]/30">
-                                    Subadmin
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-semibold bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-color)]">
-                                    Reader
-                                  </span>
-                                )}
-                              </td>
-
-                              {/* Class / Details */}
-                              <td className="py-3.5 px-5 font-medium text-[var(--text-secondary)]">
-                                {u.studentClass ? `Class: ${u.studentClass}` : 'Standard Account'}
-                              </td>
-
-                              {/* Action Menu */}
-                              <td className="py-3.5 px-5 text-right relative">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setActionMenuId(actionMenuId === u._id ? null : u._id);
-                                  }}
-                                  className="p-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
-                                >
-                                  <MoreVertical className="w-4 h-4" />
-                                </button>
-
-                                {/* POPUP ACTION DROPDOWN FOR USER */}
-                                {actionMenuId === u._id && (
-                                  <div className="absolute right-6 top-11 w-48 bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-lg shadow-xl p-1.5 z-50 text-left">
-                                    <button
-                                      onClick={() => {
-                                        setActionMenuId(null);
-                                        handleOpenEditUser(u);
-                                      }}
-                                      className="w-full px-3 py-2 rounded-md text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] flex items-center gap-2.5 transition-colors cursor-pointer"
-                                    >
-                                      <Edit3 className="w-3.5 h-3.5 text-[#337ab7]" />
-                                      Edit User Profile
-                                    </button>
-
-                                    <div className="h-px bg-[var(--border-color)] my-1" />
-
-                                    <button
-                                      onClick={() => {
-                                        setActionMenuId(null);
-                                        handleDeleteUser(u._id);
-                                      }}
-                                      className="w-full px-3 py-2 rounded-md text-xs font-semibold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                                      Delete Account
-                                    </button>
-                                  </div>
-                                )}
-                              </td>
-
-                            </tr>
-                          ))
-                        )
-                      )}
-
-                    </tbody>
-
-                  </table>
+                    </table>
+                  </div>
                 </div>
-              </div>
               )}
 
             </div>
@@ -1317,8 +1693,8 @@ export default function AdminPanel() {
             {/* Pagination Controls */}
             <div className="mt-8 flex items-center justify-between border-t border-[var(--border-color)] pt-5">
               <p className="text-xs font-medium text-[var(--text-secondary)]">
-                Showing Page <span className="text-[var(--text-primary)] font-bold">{page}</span> of{' '}
-                <span className="text-[var(--text-primary)] font-bold">{totalPages}</span> ({totalCount} total items)
+                {t('admin.showingPage', 'Showing Page')} <span className="text-[var(--text-primary)] font-bold">{page}</span> {t('admin.of', 'of')}{' '}
+                <span className="text-[var(--text-primary)] font-bold">{totalPages}</span> ({totalCount} {t('admin.totalItems', 'total items')})
               </p>
 
               <div className="flex items-center gap-2">
@@ -1327,7 +1703,7 @@ export default function AdminPanel() {
                   onClick={() => setPage(page - 1)}
                   className="px-3.5 py-1.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-secondary)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4" /> Previous
+                  <ChevronLeft className="w-4 h-4" /> {t('admin.previous', 'Previous')}
                 </button>
 
                 <button
@@ -1335,7 +1711,7 @@ export default function AdminPanel() {
                   onClick={() => setPage(page + 1)}
                   className="px-3.5 py-1.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-secondary)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer"
                 >
-                  Next <ChevronRight className="w-4 h-4" />
+                  {t('admin.next', 'Next')} <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -1361,7 +1737,7 @@ export default function AdminPanel() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              
+
               {/* Cover Art Upload / Preview */}
               <div className="md:col-span-1 space-y-3">
                 <label className="text-[10px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Book Cover Art</label>
@@ -1607,7 +1983,10 @@ export default function AdminPanel() {
                     className="w-full p-2.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-semibold mt-1 outline-none focus:border-[var(--accent-primary)]"
                   >
                     <option value="reader">Reader / Student</option>
-                    <option value="admin">Librarian Admin</option>
+                    <option value="subadmin">Subadmin</option>
+                    <option value="librarian">Librarian</option>
+                    <option value="admin">Admin</option>
+                    {isSuperAdmin && <option value="superadmin">Super Admin</option>}
                   </select>
                 </div>
 

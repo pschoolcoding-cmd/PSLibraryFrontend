@@ -4,7 +4,8 @@ import Navbar from './Navbar';
 import Sidebar, { BROWSE_ITEMS, TAXONOMY_ITEMS } from './Sidebar';
 import BookCard from './BookCard';
 import { useTheme } from '../context/ThemeContext';
-import { MOCK_BOOKS, createBookCoverSvg } from '../data/mockBooks';
+import { createBookCoverSvg } from '../data/mockBooks';
+import { matchesDualScript, matchesBookQuery } from '../utils/searchEngine';
 import {
   LayoutGrid,
   Table as TableIcon,
@@ -14,10 +15,10 @@ import {
   UserCheck,
   Star,
   Shuffle,
-  SlidersHorizontal,
   X,
   ExternalLink,
-  RotateCcw
+  RotateCcw,
+  Search as SearchIcon
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -27,7 +28,9 @@ const normalizeBook = (raw, idx = 0) => {
   const author = raw.author || 'Unknown Author';
   let genres = [];
   if (Array.isArray(raw.genre)) {
-    genres = raw.genre.map((g) => String(g).replace(/^#+/, '').replace(/_/g, ' ').trim()).filter(Boolean);
+    genres = raw.genre
+      .map((g) => String(g).replace(/^#+/, '').replace(/_/g, ' ').trim())
+      .filter(Boolean);
   } else if (typeof raw.genre === 'string' && raw.genre.trim()) {
     genres = raw.genre
       .split(/[,#]/)
@@ -39,7 +42,9 @@ const normalizeBook = (raw, idx = 0) => {
   const rating =
     typeof raw.rating === 'number'
       ? Math.min(5, Math.max(1, Math.round(raw.rating)))
-      : ((title.length + idx) % 2 === 0 ? 5 : 4);
+      : (title.length + idx) % 2 === 0
+      ? 5
+      : 4;
 
   const publishedYear =
     raw.publishedYear ||
@@ -47,8 +52,10 @@ const normalizeBook = (raw, idx = 0) => {
       ? parseInt(raw.whentaken.match(/\b(19|20)\d{2}\b/)[0], 10)
       : 2020 - (idx % 15));
 
-  const dateAdded = raw.dateAdded || raw.createdAt || `2026-10-${String(10 + (idx % 20)).padStart(2, '0')}`;
-  const formats = Array.isArray(raw.formats) && raw.formats.length > 0 ? raw.formats : ['EPUB', 'PDF'];
+  const dateAdded =
+    raw.dateAdded || raw.createdAt || `2026-10-${String(10 + (idx % 20)).padStart(2, '0')}`;
+  const formats =
+    Array.isArray(raw.formats) && raw.formats.length > 0 ? raw.formats : ['EPUB', 'PDF'];
   const shelves = Array.isArray(raw.shelves) ? raw.shelves : [];
   const isBorrowed =
     raw.borrowed &&
@@ -64,6 +71,7 @@ const normalizeBook = (raw, idx = 0) => {
     author,
     language: raw.language || 'EN',
     genre: genres,
+    genres,
     series: raw.series || 'Standard Library Collection',
     publisher: raw.publisher || 'Academic Press',
     publishedYear,
@@ -80,7 +88,7 @@ const normalizeBook = (raw, idx = 0) => {
 export default function CatalogView({ initialSection = 'books' }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { advancedSearchOpen, setAdvancedSearchOpen } = useTheme();
+  const { t, translateCategory, translateShelf } = useTheme();
 
   const urlQuery = searchParams.get('q') || '';
   const urlSection = searchParams.get('section') || initialSection;
@@ -93,20 +101,10 @@ export default function CatalogView({ initialSection = 'books' }) {
   const [selectedTaxonomyValue, setSelectedTaxonomyValue] = useState('');
   const [randomSeed, setRandomSeed] = useState(1);
 
-  // Advanced search state
-  const [advTitle, setAdvTitle] = useState(urlQuery);
-  const [advAuthor, setAdvAuthor] = useState('');
-  const [advCategory, setAdvCategory] = useState('');
-  const [advFormat, setAdvFormat] = useState('');
-  const [advAvailability, setAdvAvailability] = useState('all'); // 'all' | 'available' | 'borrowed'
-  const [advLanguage, setAdvLanguage] = useState('all'); // 'all' | 'UZ' | 'RU' | 'EN'
-  const [advYearFrom, setAdvYearFrom] = useState('');
-  const [advYearTo, setAdvYearTo] = useState('');
-
   // Quick search term
   const [quickSearch, setQuickSearch] = useState(urlQuery);
 
-  // Live API books merged with sample multilingual books
+  // Live API books only (no demo books)
   const [apiBooks, setApiBooks] = useState([]);
 
   useEffect(() => {
@@ -114,7 +112,6 @@ export default function CatalogView({ initialSection = 'books' }) {
     const sec = searchParams.get('section');
     const sh = searchParams.get('shelf');
     setQuickSearch(q);
-    setAdvTitle(q);
     if (sh) {
       setActiveShelf(sh);
       setActiveSection(`shelf:${sh}`);
@@ -129,17 +126,21 @@ export default function CatalogView({ initialSection = 'books' }) {
     let ignore = false;
     const fetchLiveBooks = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/books?limit=36`, {
+        const res = await fetch(`${API_BASE_URL}/books?limit=1000`, {
           headers: { 'x-api-key': import.meta.env.VITE_API_KEY || '' }
         });
         if (!res.ok) return;
         const result = await res.json();
-        const list = Array.isArray(result?.data) ? result.data : Array.isArray(result) ? result : [];
-        if (!ignore && list.length > 0) {
-          setApiBooks(list.map((b, i) => normalizeBook(b, i + 100)));
+        const list = Array.isArray(result?.data)
+          ? result.data
+          : Array.isArray(result)
+          ? result
+          : [];
+        if (!ignore) {
+          setApiBooks(list.map((b, i) => normalizeBook(b, i)));
         }
-      } catch (e) {
-        // Fallback silently to MOCK_BOOKS when backend is unreachable
+      } catch {
+        // Backend unreachable
       }
     };
     fetchLiveBooks();
@@ -148,13 +149,7 @@ export default function CatalogView({ initialSection = 'books' }) {
     };
   }, []);
 
-  const allBooks = useMemo(() => {
-    const mockNormalized = MOCK_BOOKS.map((b, i) => normalizeBook(b, i));
-    if (apiBooks.length === 0) return mockNormalized;
-    const existingBids = new Set(mockNormalized.map((b) => b.bid));
-    const uniqueApi = apiBooks.filter((b) => !existingBids.has(b.bid));
-    return [...mockNormalized, ...uniqueApi];
-  }, [apiBooks]);
+  const allBooks = apiBooks;
 
   // Taxonomy values for the active taxonomy section
   const taxonomyOptions = useMemo(() => {
@@ -185,12 +180,6 @@ export default function CatalogView({ initialSection = 'books' }) {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [allBooks, activeSection]);
 
-  const allCategories = useMemo(() => {
-    const set = new Set();
-    allBooks.forEach((b) => (b.genre || []).forEach((g) => set.add(g)));
-    return Array.from(set).sort();
-  }, [allBooks]);
-
   // Filter and sort books
   const filteredBooks = useMemo(() => {
     let list = [...allBooks];
@@ -217,7 +206,6 @@ export default function CatalogView({ initialSection = 'books' }) {
           list = list.filter((b) => !b.isRead);
           break;
         case 'discover': {
-          // Deterministic shuffle based on randomSeed
           list = [...list].sort((a, b) => {
             const hashA = (a._id.charCodeAt(a._id.length - 1) * 31 + randomSeed * 17) % 97;
             const hashB = (b._id.charCodeAt(b._id.length - 1) * 31 + randomSeed * 17) % 97;
@@ -237,7 +225,7 @@ export default function CatalogView({ initialSection = 'books' }) {
           break;
         case 'authors':
           if (selectedTaxonomyValue) {
-            list = list.filter((b) => b.author === selectedTaxonomyValue);
+            list = list.filter((b) => matchesDualScript(b.author, selectedTaxonomyValue));
           }
           break;
         case 'publishers':
@@ -263,52 +251,12 @@ export default function CatalogView({ initialSection = 'books' }) {
       }
     }
 
-    // 3. Quick Search filter
+    // 3. Dual-Script Quick Search filter
     if (quickSearch.trim()) {
-      const q = quickSearch.toLowerCase().trim();
-      list = list.filter(
-        (b) =>
-          b.name.toLowerCase().includes(q) ||
-          b.author.toLowerCase().includes(q) ||
-          (b.bid && b.bid.toLowerCase().includes(q)) ||
-          (b.series && b.series.toLowerCase().includes(q)) ||
-          (b.genre || []).some((g) => g.toLowerCase().includes(q))
-      );
+      list = list.filter((b) => matchesBookQuery(b, quickSearch, 'all'));
     }
 
-    // 4. Advanced Search filters
-    if (advTitle.trim() && advTitle.trim() !== quickSearch.trim()) {
-      const t = advTitle.toLowerCase().trim();
-      list = list.filter((b) => b.name.toLowerCase().includes(t));
-    }
-    if (advAuthor.trim()) {
-      const a = advAuthor.toLowerCase().trim();
-      list = list.filter((b) => b.author.toLowerCase().includes(a));
-    }
-    if (advCategory) {
-      list = list.filter((b) => (b.genre || []).includes(advCategory));
-    }
-    if (advFormat) {
-      list = list.filter((b) => (b.formats || []).includes(advFormat));
-    }
-    if (advAvailability === 'available') {
-      list = list.filter((b) => !b.borrowed || String(b.borrowed) === '0');
-    } else if (advAvailability === 'borrowed') {
-      list = list.filter((b) => b.borrowed && String(b.borrowed) !== '0');
-    }
-    if (advLanguage !== 'all') {
-      list = list.filter((b) => (b.language || 'EN').toUpperCase() === advLanguage);
-    }
-    if (advYearFrom) {
-      const yf = parseInt(advYearFrom, 10);
-      if (!isNaN(yf)) list = list.filter((b) => (b.publishedYear || 0) >= yf);
-    }
-    if (advYearTo) {
-      const yt = parseInt(advYearTo, 10);
-      if (!isNaN(yt)) list = list.filter((b) => (b.publishedYear || 9999) <= yt);
-    }
-
-    // 5. Sorting (unless in random 'discover' mode with no custom sort clicked)
+    // 4. Sorting
     if (activeSection !== 'discover' || sortBy !== 'date-desc') {
       list.sort((a, b) => {
         switch (sortBy) {
@@ -346,14 +294,6 @@ export default function CatalogView({ initialSection = 'books' }) {
     selectedTaxonomyValue,
     randomSeed,
     quickSearch,
-    advTitle,
-    advAuthor,
-    advCategory,
-    advFormat,
-    advAvailability,
-    advLanguage,
-    advYearFrom,
-    advYearTo,
     sortBy
   ]);
 
@@ -379,40 +319,25 @@ export default function CatalogView({ initialSection = 'books' }) {
 
   const handleResetFilters = () => {
     setQuickSearch('');
-    setAdvTitle('');
-    setAdvAuthor('');
-    setAdvCategory('');
-    setAdvFormat('');
-    setAdvAvailability('all');
-    setAdvLanguage('all');
-    setAdvYearFrom('');
-    setAdvYearTo('');
     setSelectedTaxonomyValue('');
     setSearchParams({});
   };
 
   const sectionHeading = useMemo(() => {
-    if (activeShelf) return `Shelf: ${activeShelf}`;
+    if (activeShelf) return `${t('catalog.chips.shelf', 'Shelf')}: ${translateShelf(activeShelf)}`;
     const browseMatch = BROWSE_ITEMS.find((i) => i.id === activeSection);
-    if (browseMatch) return browseMatch.label;
+    if (browseMatch) return t(browseMatch.labelKey, browseMatch.label);
     const taxMatch = TAXONOMY_ITEMS.find((i) => i.id === activeSection);
-    if (taxMatch) return taxMatch.label;
-    return 'Books';
-  }, [activeSection, activeShelf]);
+    if (taxMatch) return t(taxMatch.labelKey, taxMatch.label);
+    return t('sidebar.books', 'Books');
+  }, [activeSection, activeShelf, t, translateShelf]);
 
-  const isTaxonomySection = ['categories', 'authors', 'ratings'].includes(
-    activeSection
-  );
+  const isTaxonomySection = ['categories', 'authors', 'ratings'].includes(activeSection);
 
   return (
-    <div className="cw-page flex flex-col min-h-screen">
+    <div className="cw-page flex flex-col min-h-screen pt-14">
       {/* 1. Top Navigation Bar */}
-      <Navbar
-        onSearchSubmit={(term) => {
-          setQuickSearch(term);
-          setAdvTitle(term);
-        }}
-      />
+      <Navbar />
 
       {/* 2. Main Two-Column Calibre-Web Shell */}
       <div className="flex-1 flex max-w-[1600px] w-full mx-auto">
@@ -426,6 +351,33 @@ export default function CatalogView({ initialSection = 'books' }) {
 
         {/* 3. Catalog View (Main Content Area) */}
         <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6">
+          {/* PROMINENT ALWAYS-VISIBLE BOOK SEARCH INPUT (Desktop & Mobile) */}
+          <div className="mb-5">
+            <div className="flex items-center w-full rounded border-2 cw-border bg-[var(--bg-input)] focus-within:border-[var(--accent-primary)] overflow-hidden">
+              <SearchIcon className="w-4 h-4 sm:w-5 sm:h-5 ml-3 text-[var(--accent-primary)] shrink-0" />
+              <input
+                type="text"
+                value={quickSearch}
+                onChange={(e) => setQuickSearch(e.target.value)}
+                placeholder={t(
+                  'catalog.searchPlaceholder',
+                  'Search book name, author, or ISBN (Latin or Кирилл)...'
+                )}
+                className="w-full py-2.5 sm:py-3 px-3 text-sm sm:text-base font-medium bg-transparent cw-text-primary outline-none border-none shadow-none"
+              />
+              {quickSearch && (
+                <button
+                  type="button"
+                  onClick={() => setQuickSearch('')}
+                  className="pr-3 cw-text-muted hover:cw-text-primary cursor-pointer shrink-0"
+                  title="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Header with Active Category Name & Total Count */}
           <div className="flex flex-wrap items-baseline justify-between gap-4 pb-4 border-b cw-border">
             <div className="flex items-baseline gap-3 flex-wrap">
@@ -433,7 +385,10 @@ export default function CatalogView({ initialSection = 'books' }) {
                 {sectionHeading}
               </h1>
               <span className="cw-badge-info font-mono">
-                {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
+                {filteredBooks.length}{' '}
+                {filteredBooks.length === 1
+                  ? t('catalog.bookSingular', 'book')
+                  : t('catalog.bookPlural', 'books')}
               </span>
               {selectedTaxonomyValue && (
                 <button
@@ -442,7 +397,11 @@ export default function CatalogView({ initialSection = 'books' }) {
                   className="cw-badge-available cursor-pointer"
                   title="Clear taxonomy filter"
                 >
-                  <span>Filter: {selectedTaxonomyValue}</span>
+                  <span>
+                    {activeSection === 'categories'
+                      ? translateCategory(selectedTaxonomyValue)
+                      : selectedTaxonomyValue}
+                  </span>
                   <X className="w-3 h-3" />
                 </button>
               )}
@@ -451,162 +410,24 @@ export default function CatalogView({ initialSection = 'books' }) {
                   type="button"
                   onClick={() => {
                     setQuickSearch('');
-                    setAdvTitle('');
                     setSearchParams({});
                   }}
                   className="cw-badge-info cursor-pointer"
                 >
-                  <span>Search: &ldquo;{quickSearch}&rdquo;</span>
+                  <span>
+                    {t('catalog.chips.query', 'Search')}: &ldquo;{quickSearch}&rdquo;
+                  </span>
                   <X className="w-3 h-3" />
                 </button>
               )}
             </div>
-
-            {/* Language Quick Filter Tabs */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <span className="cw-text-muted text-[11px] mr-1">Catalog Lang:</span>
-              {[
-                { id: 'all', label: 'All' },
-                { id: 'UZ', label: "O'zbek (UZ)" },
-                { id: 'RU', label: 'Русский (RU)' },
-                { id: 'EN', label: 'English (EN)' }
-              ].map((l) => (
-                <button
-                  key={l.id}
-                  type="button"
-                  onClick={() => setAdvLanguage(l.id)}
-                  className={
-                    advLanguage === l.id
-                      ? 'cw-btn-primary px-2.5 py-1 text-[11px]'
-                      : 'cw-btn px-2.5 py-1 text-[11px]'
-                  }
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
           </div>
 
-          {/* Collapsible Advanced Search Panel */}
-          {advancedSearchOpen && (
-            <div className="my-4 p-4 cw-surface cw-secondary-bg space-y-3">
-              <div className="flex items-center justify-between border-b cw-border pb-2">
-                <div className="flex items-center gap-2 text-xs font-bold cw-text-primary uppercase tracking-wider">
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-                  <span>Advanced Catalog Search</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setAdvancedSearchOpen(false)}
-                  className="cw-btn px-2 py-0.5 text-[11px]"
-                >
-                  <X className="w-3 h-3" /> Close
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold cw-text-secondary mb-1">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={advTitle}
-                    onChange={(e) => {
-                      setAdvTitle(e.target.value);
-                      setQuickSearch(e.target.value);
-                    }}
-                    placeholder="Title keywords..."
-                    className="cw-input w-full"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold cw-text-secondary mb-1">
-                    Author
-                  </label>
-                  <input
-                    type="text"
-                    value={advAuthor}
-                    onChange={(e) => setAdvAuthor(e.target.value)}
-                    placeholder="Author name..."
-                    className="cw-input w-full"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold cw-text-secondary mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={advCategory}
-                    onChange={(e) => setAdvCategory(e.target.value)}
-                    className="cw-select w-full"
-                  >
-                    <option value="">All Categories</option>
-                    {allCategories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold cw-text-secondary mb-1">
-                    Availability
-                  </label>
-                  <select
-                    value={advAvailability}
-                    onChange={(e) => setAdvAvailability(e.target.value)}
-                    className="cw-select w-full"
-                  >
-                    <option value="all">All Holdings</option>
-                    <option value="available">Available Only</option>
-                    <option value="borrowed">Borrowed Only</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold cw-text-secondary mb-1">
-                    Pub. Year (From – To)
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      value={advYearFrom}
-                      onChange={(e) => setAdvYearFrom(e.target.value)}
-                      placeholder="1850"
-                      className="cw-input w-1/2"
-                    />
-                    <input
-                      type="number"
-                      value={advYearTo}
-                      onChange={(e) => setAdvYearTo(e.target.value)}
-                      placeholder="2026"
-                      className="cw-input w-1/2"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t cw-border">
-                <button
-                  type="button"
-                  onClick={handleResetFilters}
-                  className="cw-btn text-xs"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  Reset All Filters
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Taxonomy Sub-Filter Bar (when Categories, Series, Authors, Publishers, Ratings, or Formats is active) */}
+          {/* Taxonomy Sub-Filter Bar (when Categories, Authors, or Ratings is active) */}
           {isTaxonomySection && taxonomyOptions.length > 0 && (
             <div className="my-4 p-3.5 cw-surface cw-secondary-bg">
               <div className="text-[11px] font-semibold uppercase tracking-wider cw-text-secondary mb-2.5">
-                Select {sectionHeading} to Filter:
+                {t('catalog.selectTaxonomyToFilter', 'Select to Filter:')} ({sectionHeading})
               </div>
               <div className="flex flex-wrap gap-1.5">
                 <button
@@ -618,7 +439,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                       : 'cw-btn text-xs px-2.5 py-1'
                   }
                 >
-                  All ({allBooks.length})
+                  {t('catalog.langAll', 'All')} ({allBooks.length})
                 </button>
                 {taxonomyOptions.map((opt) => (
                   <button
@@ -635,7 +456,9 @@ export default function CatalogView({ initialSection = 'books' }) {
                         : 'cw-btn text-xs px-2.5 py-1'
                     }
                   >
-                    <span>{opt.name}</span>
+                    <span>
+                      {activeSection === 'categories' ? translateCategory(opt.name) : opt.name}
+                    </span>
                     <span className="opacity-75 font-mono text-[10px]">({opt.count})</span>
                   </button>
                 ))}
@@ -651,7 +474,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                 type="button"
                 onClick={() => setSortBy('date-desc')}
                 className={`cw-sort-btn ${sortBy === 'date-desc' ? 'is-active' : ''}`}
-                title="Sort by Date Added (Newest First)"
+                title={t('sort.dateDesc', 'Sort by Date Added (Newest First)')}
               >
                 <Calendar className="w-3.5 h-3.5" />
                 <span>↓9..1</span>
@@ -661,7 +484,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                 type="button"
                 onClick={() => setSortBy('date-asc')}
                 className={`cw-sort-btn ${sortBy === 'date-asc' ? 'is-active' : ''}`}
-                title="Sort by Date Added (Oldest First)"
+                title={t('sort.dateAsc', 'Sort by Date Added (Oldest First)')}
               >
                 <Calendar className="w-3.5 h-3.5" />
                 <span>↓1..9</span>
@@ -671,7 +494,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                 type="button"
                 onClick={() => setSortBy('title-asc')}
                 className={`cw-sort-btn ${sortBy === 'title-asc' ? 'is-active' : ''}`}
-                title="Sort by Title (A–Z)"
+                title={t('sort.titleAsc', 'Sort by Title (A–Z)')}
               >
                 <ArrowDownAZ className="w-3.5 h-3.5" />
                 <span>A↓Z</span>
@@ -681,7 +504,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                 type="button"
                 onClick={() => setSortBy('title-desc')}
                 className={`cw-sort-btn ${sortBy === 'title-desc' ? 'is-active' : ''}`}
-                title="Sort by Title (Z–A)"
+                title={t('sort.titleDesc', 'Sort by Title (Z–A)')}
               >
                 <ArrowUpZA className="w-3.5 h-3.5" />
                 <span>Z↓A</span>
@@ -691,7 +514,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                 type="button"
                 onClick={() => setSortBy('author-asc')}
                 className={`cw-sort-btn ${sortBy === 'author-asc' ? 'is-active' : ''}`}
-                title="Sort by Author (A–Z)"
+                title={t('sort.authorAsc', 'Sort by Author (A–Z)')}
               >
                 <UserCheck className="w-3.5 h-3.5" />
                 <span>A↓Z</span>
@@ -701,7 +524,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                 type="button"
                 onClick={() => setSortBy('author-desc')}
                 className={`cw-sort-btn ${sortBy === 'author-desc' ? 'is-active' : ''}`}
-                title="Sort by Author (Z–A)"
+                title={t('sort.authorDesc', 'Sort by Author (Z–A)')}
               >
                 <UserCheck className="w-3.5 h-3.5" />
                 <span>Z↓A</span>
@@ -711,7 +534,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                 type="button"
                 onClick={() => setSortBy('year-desc')}
                 className={`cw-sort-btn ${sortBy === 'year-desc' ? 'is-active' : ''}`}
-                title="Sort by Publication Year (Newest)"
+                title={t('sort.yearDesc', 'Sort by Publication Year (Newest)')}
               >
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Pub↓9</span>
@@ -721,7 +544,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                 type="button"
                 onClick={() => setSortBy('rating-desc')}
                 className={`cw-sort-btn ${sortBy === 'rating-desc' ? 'is-active' : ''}`}
-                title="Sort by Highest Rating"
+                title={t('sort.ratingDesc', 'Sort by Highest Rating')}
               >
                 <Star className="w-3.5 h-3.5" />
                 <span>5★</span>
@@ -734,7 +557,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                   className="cw-btn-teal text-xs py-1 px-2.5 ml-1"
                 >
                   <Shuffle className="w-3.5 h-3.5" />
-                  <span>Shuffle Random</span>
+                  <span>{t('sort.shuffle', 'Shuffle Books')}</span>
                 </button>
               )}
             </div>
@@ -746,7 +569,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                   htmlFor="cw-sort-select"
                   className="text-xs cw-text-secondary hidden sm:inline"
                 >
-                  Sort:
+                  {t('sort.label', 'Sort:')}
                 </label>
                 <select
                   id="cw-sort-select"
@@ -754,15 +577,15 @@ export default function CatalogView({ initialSection = 'books' }) {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="cw-select text-xs py-1 px-2"
                 >
-                  <option value="date-desc">Date Added (Newest)</option>
-                  <option value="date-asc">Date Added (Oldest)</option>
-                  <option value="title-asc">Title (A–Z)</option>
-                  <option value="title-desc">Title (Z–A)</option>
-                  <option value="author-asc">Author (A–Z)</option>
-                  <option value="author-desc">Author (Z–A)</option>
-                  <option value="rating-desc">Rating (High to Low)</option>
-                  <option value="year-desc">Publication Year (Newest)</option>
-                  <option value="year-asc">Publication Year (Oldest)</option>
+                  <option value="date-desc">{t('sort.dateDesc')}</option>
+                  <option value="date-asc">{t('sort.dateAsc')}</option>
+                  <option value="title-asc">{t('sort.titleAsc')}</option>
+                  <option value="title-desc">{t('sort.titleDesc')}</option>
+                  <option value="author-asc">{t('sort.authorAsc')}</option>
+                  <option value="author-desc">{t('sort.authorDesc')}</option>
+                  <option value="rating-desc">{t('sort.ratingDesc')}</option>
+                  <option value="year-desc">{t('sort.yearDesc')}</option>
+                  <option value="year-asc">{t('sort.yearAsc')}</option>
                 </select>
               </div>
 
@@ -782,10 +605,9 @@ export default function CatalogView({ initialSection = 'books' }) {
                       viewMode === 'grid' ? 'var(--accent-primary)' : 'var(--bg-elevated)',
                     color: viewMode === 'grid' ? '#FFFFFF' : 'var(--text-secondary)'
                   }}
-                  title="Grid Card View"
                 >
                   <LayoutGrid className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Grid</span>
+                  <span className="hidden sm:inline">{t('catalog.viewGrid', 'Grid')}</span>
                 </button>
                 <button
                   type="button"
@@ -797,10 +619,9 @@ export default function CatalogView({ initialSection = 'books' }) {
                       viewMode === 'table' ? 'var(--accent-primary)' : 'var(--bg-elevated)',
                     color: viewMode === 'table' ? '#FFFFFF' : 'var(--text-secondary)'
                   }}
-                  title="Tabular List View"
                 >
                   <TableIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Table</span>
+                  <span className="hidden sm:inline">{t('catalog.viewTable', 'Table')}</span>
                 </button>
               </div>
             </div>
@@ -810,18 +631,17 @@ export default function CatalogView({ initialSection = 'books' }) {
           {filteredBooks.length === 0 ? (
             <div className="my-12 p-10 cw-surface text-center space-y-3">
               <p className="text-base font-semibold cw-text-primary">
-                No books match the selected criteria
+                {t('catalog.noBooksTitle', 'No books match the selected criteria')}
               </p>
               <p className="text-xs cw-text-secondary max-w-md mx-auto">
-                Try clearing your active search query, switching shelves, or resetting the
-                advanced catalog filters.
+                {t('catalog.noBooksSubtitle')}
               </p>
               <button
                 type="button"
                 onClick={handleResetFilters}
                 className="cw-btn-primary text-xs px-4 py-1.5"
               >
-                Reset Filters
+                {t('catalog.clearAllFilters', 'Reset Filters')}
               </button>
             </div>
           ) : viewMode === 'grid' ? (
@@ -845,15 +665,15 @@ export default function CatalogView({ initialSection = 'books' }) {
                 <table className="cw-table">
                   <thead>
                     <tr>
-                      <th className="w-12">Cover</th>
-                      <th>Title</th>
-                      <th>Author</th>
-                      <th>Categories</th>
-                      <th>Lang</th>
-                      <th>Year</th>
-                      <th>Rating</th>
-                      <th>Status</th>
-                      <th className="text-right">Action</th>
+                      <th className="w-12">{t('catalog.table.cover', 'Cover')}</th>
+                      <th>{t('catalog.table.title', 'Title')}</th>
+                      <th>{t('catalog.table.author', 'Author')}</th>
+                      <th>{t('catalog.table.categories', 'Categories')}</th>
+                      <th>{t('catalog.table.lang', 'Lang')}</th>
+                      <th>{t('catalog.table.year', 'Year')}</th>
+                      <th>{t('catalog.table.rating', 'Rating')}</th>
+                      <th>{t('catalog.table.status', 'Status')}</th>
+                      <th className="text-right">{t('catalog.table.actions', 'Action')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -908,9 +728,18 @@ export default function CatalogView({ initialSection = 'books' }) {
                           <td>
                             <div className="flex flex-wrap gap-1">
                               {(book.genre || []).slice(0, 2).map((g) => (
-                                <span key={g} className="cw-badge-info">
-                                  {g}
-                                </span>
+                                <button
+                                  key={g}
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveShelf(null);
+                                    setActiveSection('categories');
+                                    setSelectedTaxonomyValue(g);
+                                  }}
+                                  className="cw-badge-info cursor-pointer"
+                                >
+                                  {translateCategory(g)}
+                                </button>
                               ))}
                             </div>
                           </td>
@@ -944,9 +773,13 @@ export default function CatalogView({ initialSection = 'books' }) {
                           </td>
                           <td>
                             {isBorrowed ? (
-                              <span className="cw-badge-borrowed">Borrowed</span>
+                              <span className="cw-badge-borrowed">
+                                {t('status.borrowed', 'Borrowed')}
+                              </span>
                             ) : (
-                              <span className="cw-badge-available">Available</span>
+                              <span className="cw-badge-available">
+                                {t('status.available', 'Available')}
+                              </span>
                             )}
                           </td>
                           <td className="text-right">
@@ -955,7 +788,7 @@ export default function CatalogView({ initialSection = 'books' }) {
                               onClick={() => navigate(`/book/${book._id || book.bid}`)}
                               className="cw-btn text-xs py-1 px-2.5"
                             >
-                              <span>Details</span>
+                              <span>{t('catalog.details', 'Details')}</span>
                               <ExternalLink className="w-3 h-3" />
                             </button>
                           </td>
@@ -972,4 +805,3 @@ export default function CatalogView({ initialSection = 'books' }) {
     </div>
   );
 }
-

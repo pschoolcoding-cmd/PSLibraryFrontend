@@ -184,9 +184,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Borrow Book
+  // Request to Borrow Book (Student Action)
   const borrowBook = async (bookInfo) => {
-    if (!token) throw new Error('Please log in to borrow books');
+    if (!token) throw new Error('Please log in to request borrowing books');
     try {
       const response = await fetch(`${API_BASE_URL}/readers/borrow`, {
         method: 'POST',
@@ -198,24 +198,28 @@ export const AuthProvider = ({ children }) => {
       });
 
       const data = await response.json();
-      if (!data.success) throw new Error(data.message || 'Failed to borrow book');
+      if (!data.success) throw new Error(data.message || 'Failed to request book');
 
       // Refresh reader state
       setReader((prev) => ({
         ...prev,
         borrowedBooks: data.borrowedBooks
       }));
+      localStorage.setItem(
+        'grand_library_reader',
+        JSON.stringify({ ...reader, borrowedBooks: data.borrowedBooks })
+      );
       return data;
     } catch (err) {
       throw err;
     }
   };
 
-  // Return Book
-  const returnBook = async (bookId) => {
-    if (!token) return;
+  // Cancel Pending Borrow Request (Student Action)
+  const cancelBorrowRequest = async (bookId) => {
+    if (!token) throw new Error('Please log in');
     try {
-      const response = await fetch(`${API_BASE_URL}/readers/return`, {
+      const response = await fetch(`${API_BASE_URL}/readers/cancel-request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,12 +229,86 @@ export const AuthProvider = ({ children }) => {
       });
 
       const data = await response.json();
-      if (!data.success) throw new Error(data.message || 'Failed to return book');
+      if (!data.success) throw new Error(data.message || 'Failed to cancel request');
 
       setReader((prev) => ({
         ...prev,
         borrowedBooks: data.borrowedBooks
       }));
+      localStorage.setItem(
+        'grand_library_reader',
+        JSON.stringify({ ...reader, borrowedBooks: data.borrowedBooks })
+      );
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  // Give Book Copy to Student (Librarian & Super Admin ONLY)
+  const giveBookToStudent = async (bookId, payload) => {
+    if (!token) throw new Error('Staff authorization token required');
+    const response = await fetch(`${API_BASE_URL}/books/${encodeURIComponent(bookId)}/give`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-requester-id': reader?._id || '',
+        'x-requester-role': reader?.role || ''
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || data.message || 'Failed to give book to student');
+    }
+    return data;
+  };
+
+  // Mark Returned Book as in the Shelves (Librarian & Super Admin ONLY)
+  const markBookReturnedToShelf = async (bookId, copyBid) => {
+    if (!token) throw new Error('Staff authorization token required');
+    const response = await fetch(`${API_BASE_URL}/books/${encodeURIComponent(bookId)}/return-shelf`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-requester-id': reader?._id || '',
+        'x-requester-role': reader?.role || ''
+      },
+      body: JSON.stringify({ copyBid: copyBid || bookId })
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || data.message || 'Failed to mark book as returned in shelves');
+    }
+    return data;
+  };
+
+  // Return Book (Librarian & Super Admin ONLY)
+  const returnBook = async (bookId, studentId) => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/readers/return`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ bookId, studentId })
+      });
+
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message || 'Failed to return book');
+
+      if (!studentId || studentId === reader?._id) {
+        setReader((prev) => ({
+          ...prev,
+          borrowedBooks: data.borrowedBooks
+        }));
+      }
       return data;
     } catch (err) {
       throw err;
@@ -275,17 +353,23 @@ export const AuthProvider = ({ children }) => {
         googleLogin,
         logout,
         updateProfile,
+        createStudentAccount,
         borrowBook,
+        cancelBorrowRequest,
+        giveBookToStudent,
+        markBookReturnedToShelf,
         returnBook,
         toggleFavorite,
-        isSuperAdmin: reader?.role === 'superadmin',
-        isAdmin: reader?.role === 'admin' || reader?.role === 'superadmin',
+        isSuperAdmin: ['superadmin', 'librarian'].includes(reader?.role),
+        isLibrarian: reader?.role === 'librarian',
+        isAdmin: ['superadmin', 'admin', 'librarian'].includes(reader?.role),
         isSubAdmin: reader?.role === 'subadmin',
-        isStaff: ['superadmin', 'admin', 'subadmin'].includes(reader?.role),
-        canAccessAdminPanel: ['superadmin', 'admin', 'subadmin'].includes(reader?.role),
-        canManageRoles: reader?.role === 'superadmin',
-        canApproveBooks: ['superadmin', 'admin'].includes(reader?.role),
-        canAddBooks: ['superadmin', 'admin', 'subadmin'].includes(reader?.role),
+        isStaff: ['superadmin', 'admin', 'librarian', 'subadmin'].includes(reader?.role),
+        canAccessAdminPanel: ['superadmin', 'admin', 'librarian', 'subadmin'].includes(reader?.role),
+        canManageCirculation: ['superadmin', 'librarian'].includes(reader?.role),
+        canManageRoles: ['superadmin', 'librarian'].includes(reader?.role),
+        canApproveBooks: ['superadmin', 'admin', 'librarian'].includes(reader?.role),
+        canAddBooks: ['superadmin', 'admin', 'librarian', 'subadmin'].includes(reader?.role),
         userRole: reader?.role || 'reader',
         isAuthenticated: !!reader
       }}

@@ -1,10 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {
+  I18nProvider,
+  useI18n,
+  LANG_STORAGE_KEY,
+  normalizeLangCode,
+  getInitialLangCode
+} from './I18nContext';
 
 const ThemeContext = createContext(null);
 
 export const THEME_STORAGE_KEY = 'ps_library_theme';
 const LEGACY_CATALOG_THEME_KEY = 'ps_library_catalog_theme_v1';
-const LANG_STORAGE_KEY = 'ps_library_lang';
 const SHELVES_STORAGE_KEY = 'ps_library_shelves';
 
 const DEFAULT_SHELVES = [
@@ -40,19 +46,6 @@ const getInitialTheme = () => {
   return 'day';
 };
 
-const getInitialLanguage = () => {
-  if (typeof window === 'undefined') return 'EN';
-  try {
-    const stored = localStorage.getItem(LANG_STORAGE_KEY);
-    if (stored && ['UZ', 'RU', 'EN'].includes(stored)) {
-      return stored;
-    }
-  } catch (e) {
-    // ignore
-  }
-  return 'EN';
-};
-
 const getInitialShelves = () => {
   if (typeof window === 'undefined') return DEFAULT_SHELVES;
   try {
@@ -61,13 +54,14 @@ const getInitialShelves = () => {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
   return DEFAULT_SHELVES;
 };
 
-export const ThemeProvider = ({ children }) => {
+const ThemeInnerProvider = ({ children, languageState, setLanguageState }) => {
+  const i18n = useI18n();
   const [theme, setThemeState] = useState(getInitialTheme);
   const [hasExplicitPreference, setHasExplicitPreference] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -80,7 +74,6 @@ export const ThemeProvider = ({ children }) => {
       return false;
     }
   });
-  const [language, setLanguageState] = useState(getInitialLanguage);
   const [shelves, setShelves] = useState(getInitialShelves);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -156,16 +149,18 @@ export const ThemeProvider = ({ children }) => {
     }
   }, []);
 
-  const setLanguage = useCallback((lang) => {
-    if (['UZ', 'RU', 'EN'].includes(lang)) {
-      setLanguageState(lang);
+  const setLanguage = useCallback(
+    (lang) => {
+      const normalized = normalizeLangCode(lang);
+      setLanguageState(normalized);
       try {
-        localStorage.setItem(LANG_STORAGE_KEY, lang);
+        localStorage.setItem(LANG_STORAGE_KEY, normalized);
       } catch {
         // ignore
       }
-    }
-  }, []);
+    },
+    [setLanguageState]
+  );
 
   const createShelf = useCallback((shelfName) => {
     const trimmed = (shelfName || '').trim();
@@ -198,8 +193,15 @@ export const ThemeProvider = ({ children }) => {
         toggleTheme,
         setTheme,
         resetToSystemTheme,
-        language,
+        language: languageState,
+        languageUpper: languageState.toUpperCase(),
         setLanguage,
+        t: i18n.t,
+        translateCategory: i18n.translateCategory,
+        translateShelf: i18n.translateShelf,
+        translateStatus: i18n.translateStatus,
+        supportedLanguages: i18n.supportedLanguages,
+        dictionary: i18n.dictionary,
         shelves,
         createShelf,
         advancedSearchOpen,
@@ -210,6 +212,18 @@ export const ThemeProvider = ({ children }) => {
     >
       {children}
     </ThemeContext.Provider>
+  );
+};
+
+export const ThemeProvider = ({ children }) => {
+  const [languageState, setLanguageState] = useState(getInitialLangCode);
+
+  return (
+    <I18nProvider externalLang={languageState} onExternalLangChange={setLanguageState}>
+      <ThemeInnerProvider languageState={languageState} setLanguageState={setLanguageState}>
+        {children}
+      </ThemeInnerProvider>
+    </I18nProvider>
   );
 };
 

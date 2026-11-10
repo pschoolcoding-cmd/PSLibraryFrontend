@@ -2,24 +2,30 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Check } from 'lucide-react';
 import { createBookCoverSvg } from '../data/mockBooks';
+import { useTheme } from '../context/ThemeContext';
 
 export default function BookCard({ book, onAuthorClick }) {
   const navigate = useNavigate();
+  const { t } = useTheme();
 
   const bookId = book._id || book.bid;
+  // Rule: Book metadata (titles, authors) must remain in their original registered language
   const title = book.name || book.title || 'Untitled Volume';
   const author = book.author || 'Unknown Author';
+
+  const rawBorrowed = String(book.borrowed || '0').toLowerCase().trim();
+  const isReserved = rawBorrowed.includes('reserved') || book.status === 'reserved';
   const isBorrowed =
-    book.borrowed &&
-    String(book.borrowed) !== '0' &&
-    String(book.borrowed).toLowerCase() !== 'available' &&
-    String(book.borrowed).trim() !== '';
+    !isReserved &&
+    Boolean(book.borrowed && rawBorrowed !== '0' && rawBorrowed !== 'available' && rawBorrowed !== '');
 
   // Compute deterministic 1-5 star rating if not explicitly stored on backend record
   const rating =
     typeof book.rating === 'number'
       ? Math.min(5, Math.max(1, Math.round(book.rating)))
-      : ((title.length + author.length) % 2 === 0 ? 5 : 4);
+      : (title.length + author.length) % 2 === 0
+      ? 5
+      : 4;
 
   const fallbackCover = createBookCoverSvg({
     title,
@@ -40,7 +46,7 @@ export default function BookCard({ book, onAuthorClick }) {
     if (onAuthorClick) {
       onAuthorClick(author);
     } else {
-      navigate(`/?q=${encodeURIComponent(author)}`);
+      navigate(`/search?q=${encodeURIComponent(author)}`);
     }
   };
 
@@ -67,12 +73,16 @@ export default function BookCard({ book, onAuthorClick }) {
           }}
         />
 
-        {/* Top-Right Availability Pill Badge ("Available" / "Borrowed") */}
+        {/* Top-Right Availability Pill Badge ("Available" / "Borrowed" / "Reserved") */}
         <div className="absolute top-1.5 right-1.5 z-10">
-          {isBorrowed ? (
-            <span className="cw-badge-borrowed shadow-xs">Borrowed</span>
+          {isReserved ? (
+            <span className="cw-badge-info shadow-xs">{t('status.reserved', 'Reserved')}</span>
+          ) : isBorrowed ? (
+            <span className="cw-badge-borrowed shadow-xs">{t('status.borrowed', 'Borrowed')}</span>
           ) : (
-            <span className="cw-badge-available shadow-xs">Available</span>
+            <span className="cw-badge-available shadow-xs">
+              {t('status.available', 'Available')}
+            </span>
           )}
         </div>
 
@@ -85,7 +95,7 @@ export default function BookCard({ book, onAuthorClick }) {
               borderColor: 'var(--border-strong)',
               color: 'var(--text-primary)'
             }}
-            title="Read"
+            title={t('status.read', 'Read')}
           >
             <Check className="w-3 h-3 stroke-[2.5]" />
           </div>
@@ -102,13 +112,13 @@ export default function BookCard({ book, onAuthorClick }) {
                 color: 'var(--text-secondary)'
               }}
             >
-              {book.copyCount} copies
+              {book.copyCount} {t('status.copies', 'copies')}
             </span>
           </div>
         )}
       </div>
 
-      {/* Book Metadata Under Cover (Calibre-Web Typography) */}
+      {/* Book Metadata Under Cover (Original Language Preserved) */}
       <div className="pt-2.5 flex flex-col gap-0.5">
         <h3
           onClick={handleOpenBook}
@@ -122,7 +132,7 @@ export default function BookCard({ book, onAuthorClick }) {
           type="button"
           onClick={handleAuthorClick}
           className="text-left text-[12px] font-normal cw-link-teal truncate cursor-pointer w-fit max-w-full"
-          title={`Filter by author: ${author}`}
+          title={author}
         >
           {author}
         </button>
@@ -150,4 +160,3 @@ export default function BookCard({ book, onAuthorClick }) {
     </div>
   );
 }
-

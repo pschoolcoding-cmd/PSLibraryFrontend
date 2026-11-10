@@ -560,9 +560,9 @@ textarea:focus {
 [data-theme="night"] .border-gray-850,
 [data-theme="night"] .border-gray-900,
 [data-theme="night"] .border-gray-950,
-[data-theme="night"] .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
-[data-theme="night"] .divide-gray-800 > :not([hidden]) ~ :not([hidden]),
-[data-theme="night"] .divide-gray-800\/40 > :not([hidden]) ~ :not([hidden]) {
+[data-theme="night"] .divide-gray-100> :not([hidden])~ :not([hidden]),
+[data-theme="night"] .divide-gray-800> :not([hidden])~ :not([hidden]),
+[data-theme="night"] .divide-gray-800\/40> :not([hidden])~ :not([hidden]) {
   border-color: var(--border-color) !important;
 }
 
@@ -642,8 +642,8 @@ textarea:focus {
 [data-theme="day"] .border-gray-850,
 [data-theme="day"] .border-gray-900,
 [data-theme="day"] .border-gray-950,
-[data-theme="day"] .divide-gray-800 > :not([hidden]) ~ :not([hidden]),
-[data-theme="day"] .divide-gray-800\/40 > :not([hidden]) ~ :not([hidden]) {
+[data-theme="day"] .divide-gray-800> :not([hidden])~ :not([hidden]),
+[data-theme="day"] .divide-gray-800\/40> :not([hidden])~ :not([hidden]) {
   border-color: var(--border-color) !important;
 }
 
